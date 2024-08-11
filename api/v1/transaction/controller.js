@@ -9,6 +9,7 @@ const formats = require('../../../config/format');
 const errMsg = require('../../../error/resError');
 const adrVA = require('../../../model/adr_va');
 const otpGenerator = require('otp-generator');
+const digit = require('n-digit-token');
 
 exports.vaInfo = async function (req, res) {
   try {
@@ -41,12 +42,7 @@ exports.createVa = async function (req, res) {
       let newVA;
       while (true) {
         const sequences = moment().format('YYMMDD');
-        const fRand = otpGenerator.generate(6, {
-          digits: true,
-          alphabets: false,
-          upperCase: false,
-          specialChars: false,
-        });
+        const fRand = digit.gen(6);
         const newVAs = `8921${utils.scramble(`${sequences}${fRand}`)}`;
         const checkNewVA = await adrVA.findOne({
           raw: true,
