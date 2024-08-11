@@ -42,6 +42,7 @@ exports.createVa = async function (req, res) {
       while (true) {
         const sequences = moment().format('YYMMDD');
         const fRand = otpGenerator.generate(6, {
+          digits: true,
           alphabets: false,
           upperCase: false,
           specialChars: false,
