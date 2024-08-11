@@ -2,6 +2,7 @@
 const pino = require('pino');
 const moment = require('moment-timezone');
 const uuidGen = require('uuid');
+const formats = require('./format');
 
 class LoggerPino {
   #pino = false;
@@ -16,7 +17,7 @@ class LoggerPino {
     this.#pino = pino({
       level: this.level,
       messageKey: 'log_message',
-      timestamp: () => `,"@timestamp":"${moment().tz('Asia/Jakarta').format()}"`,
+      timestamp: () => `,"@timestamp":"${formats.getCurrentTimeInJakarta(moment().format())}"`,
       formatters: {
         level(label) {
           return { log_level: label };

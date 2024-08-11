@@ -1,5 +1,6 @@
 const moment = require('moment');
 const errCode = require('../error/errCode');
+const format = require('../config/format');
 
 function rs(code, data) {
   let code_description;
@@ -16,7 +17,7 @@ function rs(code, data) {
     code_description: code_description,
     data: data,
     language: 'EN',
-    timestamp: moment().format('YYYY-MM-DD HH:mm:ss:SSS')
+    timestamp: format.getCurrentTimeInJakarta(moment().format())
   }
 }
 
