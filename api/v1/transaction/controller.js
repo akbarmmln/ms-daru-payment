@@ -31,10 +31,11 @@ exports.vaInfo = async function (req, res) {
 
 exports.createVa = async function (req, res) {
   try {
+    const id = req.body.id
     const data = await adrVA.findOne({
       raw: true,
       where: {
-        account_id: req.id
+        account_id: id
       }
     })
 
@@ -60,13 +61,13 @@ exports.createVa = async function (req, res) {
       const result = {
         id: uuidv4(),
         created_dt: moment().format('YYYY-MM-DD HH:mm:ss.SSS'),
-        created_by: req.id,
+        created_by: id,
         modified_dt: null,
         modified_by: null,
         is_deleted: 0,
         va_number: newVA,
         balance: 0,
-        account_id: req.id,
+        account_id: id
       }
       await adrVA.create(result)
       return res.status(200).json(rsmg('000000', result))
