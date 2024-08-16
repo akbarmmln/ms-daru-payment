@@ -1,16 +1,14 @@
 const moment = require('moment');
-const errCode = require('./errCode');
 const format = require('../config/format');
 
-function resError(code, e, messageErr = '') {
-  let messageCode = errCode[code];
+function resError(code, description, errorDetails = '') {
   return {
     message: 'unsuccessful',
     err_code: code,
-    err_msg: format.isEmpty(messageCode) ? messageErr : messageCode,
-    err_msg2: e,
+    err_msg: !format.isEmpty(description) ? description : 'internal server error',
+    err_msg2: errorDetails,
     language: 'EN',
-    timestamp: moment().format()
+    timestamp: format.getCurrentTimeInJakarta(moment().format())
   }
 }
 

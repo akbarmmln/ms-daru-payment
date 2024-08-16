@@ -14,9 +14,9 @@ exports.returnErrorFunction = function (resObject, errorMessageLogger, errorObje
 
 exports.verifyTokenMs = async function (req, res, next) {
   try {
-    let filtered = ['access-token', 'os', 'app-version']
-    let obj = req.headers;
-    let filteredUs = Object.keys(obj)
+    const filtered = ['access-token', 'os', 'app-version']
+    const obj = req.headers;
+    const filteredUs = Object.keys(obj)
       .filter(key => filtered.includes(key))
       .reduce((objc, key) => {
         objc[key] = obj[key];

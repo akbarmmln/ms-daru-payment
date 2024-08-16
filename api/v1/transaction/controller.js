@@ -8,8 +8,9 @@ const logger = require('../../../config/logger');
 const formats = require('../../../config/format');
 const errMsg = require('../../../error/resError');
 const adrVA = require('../../../model/adr_va');
-const otpGenerator = require('otp-generator');
 const digit = require('n-digit-token');
+const ApiErrorMsg = require('../../../error/apiErrorMsg')
+const HttpStatusCode = require("../../../error/httpStatusCode");
 
 exports.vaInfo = async function (req, res) {
   try {
@@ -32,6 +33,9 @@ exports.vaInfo = async function (req, res) {
 exports.createVa = async function (req, res) {
   try {
     const id = req.body.id
+    if (formats.isEmpty(id)) {
+      throw new ApiErrorMsg(HttpStatusCode.BAD_REQUEST, '70001');
+    }
     const data = await adrVA.findOne({
       raw: true,
       where: {
