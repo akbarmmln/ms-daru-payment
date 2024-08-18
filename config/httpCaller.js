@@ -4,7 +4,6 @@ const logger = require('./logger');
 axios.interceptors.request.use(
     (config) => {
         config.headers = customDataHeader(config.headers);
-        logger.infoWithContext(`common request with axios ${JSON.stringify(config)}`)
         return config;    
     },
     (error) => {
@@ -15,8 +14,6 @@ axios.interceptors.request.use(
 
 axios.interceptors.response.use(
     (response) => {
-        logger.infoWithContext(`common respon from axios headers :${JSON.stringify(response.headers)}`)
-        logger.infoWithContext(`common respon from axios data :${JSON.stringify(response.data)}`)
         const accessToken = response.headers['access-token'];
         if (accessToken) {
             // If the token is present, set it for future requests
