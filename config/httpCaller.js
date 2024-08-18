@@ -5,8 +5,7 @@ axios.interceptors.request.use(
     (config) => {
         config.headers = customDataHeader(config.headers);
         logger.infoWithContext(`common request with axios ${JSON.stringify(config)}`)
-        return config;
-    
+        return config;    
     },
     (error) => {
         // Tangani kesalahan jika terjadi selama penanganan permintaan
