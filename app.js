@@ -16,12 +16,11 @@ app.use(helmet());
 
 app.use((err, req, res, next) => {
     if (err instanceof SyntaxError && err.status === 400 && "body" in err) {
-        return res.json({
+        return res.status(400).json({
             message: "request not permitted",
             error: true,
         });
     }
-    next();
 });
 
 app.use('/', require('./routes'));

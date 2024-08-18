@@ -14,30 +14,21 @@ exports.returnErrorFunction = function (resObject, errorMessageLogger, errorObje
 
 exports.verifyTokenMs = async function (req, res, next) {
   try {
-    const filtered = ['access-token', 'os', 'app-version']
-    const obj = req.headers;
-    const filteredUs = Object.keys(obj)
-      .filter(key => filtered.includes(key))
-      .reduce((objc, key) => {
-        objc[key] = obj[key];
-        return objc;
-      }, {});
-    req.headers = filteredUs;
-
-    let verifyToken = await axios({
-      method: 'GET',
+    const payload = {
+      method: 'POST',
       url: process.env.MS_AUTH_V1_URL + '/auth/verify-token',
       headers: {
         ...req.headers
       }
-    })
-    verifyToken = verifyToken.data
-    req.id = verifyToken.data.id;
-    req.parts = verifyToken.data.partition;
-    req.organitation_id = verifyToken.data.organitation_id;
-    req.position_id = verifyToken.data.position_id;
-    res.set('Access-Control-Expose-Headers', 'access-token');
-    res.set('access-token', verifyToken.data.newToken);
+    }
+    const verifyToken = await httpCaller(payload);
+    const verifyTokenData = verifyToken?.data
+    const verifyTokenHeaders = verifyToken?.headers
+    req.id = verifyTokenData.data.id;
+    req.parts = verifyTokenData.data.partition;
+    req.organitation_id = verifyTokenData.data.organitation_id;
+    req.position_id = verifyTokenData.data.position_id;
+    req.access_token = verifyTokenHeaders.access_token
     next();
   } catch (e) {
     logger.errorWithContext({ error: e, message: 'error verify token...' });
