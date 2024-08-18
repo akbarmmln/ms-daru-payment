@@ -22,7 +22,7 @@ exports.vaInfo = async function (req, res) {
         account_id: id
       }
     })
-    res.header('access-token', req.access_token);
+    res.header('access-token', req['access-token']);
     return res.status(200).json(rsmg('000000', data))
   } catch (e) {
     logger.errorWithContext({ error: e, message: 'error GET /api/v1/transaction/va-info...' });

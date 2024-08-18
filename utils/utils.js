@@ -22,7 +22,7 @@ exports.verifyTokenMs = async function (req, res, next) {
         ...req.headers
       }
     }
-    
+
     const verifyToken = await httpCaller(payload);
     const verifyTokenData = verifyToken?.data
     const verifyTokenHeaders = verifyToken?.headers
@@ -30,7 +30,7 @@ exports.verifyTokenMs = async function (req, res, next) {
     req.parts = verifyTokenData.data.partition;
     req.organitation_id = verifyTokenData.data.organitation_id;
     req.position_id = verifyTokenData.data.position_id;
-    req.access_token = verifyTokenHeaders.access_token
+    req['access-token'] = verifyTokenHeaders['access-token']
     next();
   } catch (e) {
     logger.errorWithContext({ error: e, message: 'error verify token...' });
