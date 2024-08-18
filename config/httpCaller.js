@@ -16,7 +16,7 @@ axios.interceptors.response.use(
     (response) => {
         logger.infoWithContext(`common respon from axios headers :${JSON.stringify(response.headers)}`)
         logger.infoWithContext(`common respon from axios data :${JSON.stringify(response.data)}`)
-        const accessToken = response.headers['new-access-token'];
+        const accessToken = response.headers['access-token'];
         if (accessToken) {
             // If the token is present, set it for future requests
             axios.defaults.headers.common['access-token'] = accessToken;
