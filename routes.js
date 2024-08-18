@@ -11,15 +11,15 @@ router.all('/api/*', (req, res, next) => {
     res.header('os', req.headers['os']);
     res.header('app-version', req.headers['app-version']);
 
-    const filtered = ['access-token', 'os', 'app-version']
-    const obj = req.headers;
-    const filteredUs = Object.keys(obj)
-        .filter(key => filtered.includes(key))
-        .reduce((objc, key) => {
-            objc[key] = obj[key];
-            return objc;
-        }, {});
-    req.headers = filteredUs;
+    // const filtered = ['access-token', 'os', 'app-version']
+    // const obj = req.headers;
+    // const filteredUs = Object.keys(obj)
+    //     .filter(key => filtered.includes(key))
+    //     .reduce((objc, key) => {
+    //         objc[key] = obj[key];
+    //         return objc;
+    //     }, {});
+    // req.headers = filteredUs;
     next();
 })
 

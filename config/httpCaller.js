@@ -3,8 +3,10 @@ const logger = require('./logger');
 
 axios.interceptors.request.use(
     (config) => {
+        config.headers = customDataHeader(config.headers);
         logger.infoWithContext(`common request with axios ${JSON.stringify(config)}`)
         return config;
+    
     },
     (error) => {
         // Tangani kesalahan jika terjadi selama penanganan permintaan
@@ -27,5 +29,38 @@ axios.interceptors.response.use(
         return Promise.reject(error);
     }
 );
+
+const customDataHeader = (headers) => {
+    const newHeaders = { ...headers };
+
+    const keysToRemove = [
+        'accept',
+        'host',
+        'connection',
+        'sec-ch-ua',
+        'sec-ch-ua-mobile',
+        'user-agent',
+        'sec-ch-ua-platform',
+        'origin',
+        'sec-fetch-site',
+        'sec-fetch-mode',
+        'sec-fetch-dest',
+        'accept-encoding',
+        'accept-language',
+        'if-none-match',
+        'postman-token',
+        'content-length',
+        'x-request-id',
+    ];
+
+    for (const keyToRemove of keysToRemove) {
+        if (headers[keyToRemove] !== undefined) {
+            delete newHeaders[keyToRemove];
+        }
+    }
+
+    return newHeaders;
+};
+
 
 module.exports = axios;
