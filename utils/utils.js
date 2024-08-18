@@ -1,6 +1,7 @@
 const logger = require('../config/logger');
 const errMsg = require('../error/resError');
 const axios = require('axios');
+const httpCaller = require('../config/httpCaller');
 
 exports.returnErrorFunction = function (resObject, errorMessageLogger, errorObject) {
   if (typeof errorObject === 'string') {
