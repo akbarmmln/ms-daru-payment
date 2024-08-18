@@ -15,11 +15,19 @@ exports.returnErrorFunction = function (resObject, errorMessageLogger, errorObje
 
 exports.verifyTokenMs = async function (req, res, next) {
   try {
+    let ignoreExpr = req.body.ignoreExpr;
+    if (!ignoreExpr) {
+      ignoreExpr = false;
+    }
+
     const payload = {
       method: 'POST',
       url: process.env.MS_AUTH_V1_URL + '/auth/verify-token',
       headers: {
         ...req.headers
+      },
+      data: {
+        ignoreExpr: ignoreExpr
       }
     }
 
