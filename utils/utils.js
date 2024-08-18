@@ -22,6 +22,7 @@ exports.verifyTokenMs = async function (req, res, next) {
         ...req.headers
       }
     }
+    
     const verifyToken = await httpCaller(payload);
     const verifyTokenData = verifyToken?.data
     const verifyTokenHeaders = verifyToken?.headers
