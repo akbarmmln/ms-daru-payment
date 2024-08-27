@@ -108,7 +108,7 @@ exports.transferInquiry = async function (req, res) {
     })
 
     res.header('access-token', req['access-token']);
-    return res.status(200).json(rsmg('000000', akun.data))
+    return res.status(200).json(rsmg('000000', akun.data.data))
   } catch (e) {
     logger.errorWithContext({ error: e, message: 'error POST /api/v1/transaction//transfer/inquiry...' });
     return utils.returnErrorFunction(res, 'error POST /api/v1/transaction//transfer/inquiry...', e);
