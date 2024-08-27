@@ -11,6 +11,7 @@ const adrVA = require('../../../model/adr_va');
 const digit = require('n-digit-token');
 const ApiErrorMsg = require('../../../error/apiErrorMsg')
 const HttpStatusCode = require("../../../error/httpStatusCode");
+const httpCaller = require('../../../config/httpCaller');
 
 exports.vaInfo = async function (req, res) {
   try {
@@ -80,5 +81,36 @@ exports.createVa = async function (req, res) {
   } catch (e) {
     logger.errorWithContext({ error: e, message: 'error POST /api/v1/transaction/create-va...' });
     return utils.returnErrorFunction(res, 'error POST /api/v1/transaction/create-va...', e);
+  }
+}
+
+exports.transferInquiry = async function (req, res) {
+  try {
+    const va_number = req.body.va_number;
+
+    const data = await adrVA.findOne({
+      raw: true,
+      where: {
+        va_number: va_number
+      }
+    })
+
+    if (!data) {
+      return res.status(200).json(rsmg('70002', null));
+    }
+
+    const akun = await httpCaller({
+      method: 'POST',
+      url: process.env.MS_ACCOUNT_V1_URL + '/account/inquiry',
+      data: {
+        account_id: data.account_id
+      }
+    })
+
+    res.header('access-token', req['access-token']);
+    return res.status(200).json(rsmg('000000', akun.data))
+  } catch (e) {
+    logger.errorWithContext({ error: e, message: 'error POST /api/v1/transaction//transfer/inquiry...' });
+    return utils.returnErrorFunction(res, 'error POST /api/v1/transaction//transfer/inquiry...', e);
   }
 }
