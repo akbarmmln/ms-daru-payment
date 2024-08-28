@@ -91,7 +91,6 @@ exports.createVa = async function (req, res) {
 exports.transferInquiry = async function (req, res) {
   try {
     const va_number = req.body.va_number;
-
     const data = await adrVA.findOne({
       raw: true,
       where: {
@@ -103,13 +102,18 @@ exports.transferInquiry = async function (req, res) {
       return res.status(200).json(rsmg('70002', null));
     }
 
-    const akun = await httpCaller({
-      method: 'POST',
-      url: process.env.MS_ACCOUNT_V1_URL + '/account/inquiry',
-      data: {
-        account_id: data.account_id
-      }
-    })
+    let akun;
+    try {
+      akun = await httpCaller({
+        method: 'POST',
+        url: process.env.MS_ACCOUNT_V1_URL + '/account/inquiry',
+        data: {
+          account_id: data.account_id
+        }
+      })  
+    } catch (e) {
+      return res.status(e.response.status).json(e?.response?.data);
+    }
 
     res.header('access-token', req['access-token']);
     return res.status(200).json(rsmg('000000', {
@@ -138,14 +142,19 @@ exports.transferPayment = async function (req, res) {
     const va_name_destination = req.body.va_name_destination;
     const nominal = req.body.nominal;
 
-    await httpCaller({
-      method: 'POST',
-      url: process.env.MS_AUTH_V1_URL + '/auth/verify-code-trx',
-      data: {
-        type: 'tfp',
-        code: code_transaction
-      }
-    })
+    try {
+      await httpCaller({
+        method: 'POST',
+        url: process.env.MS_AUTH_V1_URL + '/auth/verify-code-trx',
+        data: {
+          type: 'tfp',
+          code: code_transaction
+        }
+      })  
+    } catch (e) {
+      return res.status(e.response.status).json(e?.response?.data);
+    }
+
     let state = {
       type: 'TFP',
       tracking: ['Poin ditarik dari sumber dana poin kamu', 'Respon dari va penerima', 'Berhasil transfer poin ke penerima'],
