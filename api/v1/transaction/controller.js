@@ -126,7 +126,7 @@ exports.transferPayment = async function (req, res) {
   try {
     const id = uuidv4();
     const jobPartition = parseInt(crc16(id).toString());
-  
+    const code_transaction = req.body.code_transaction;
     const partition = moment().format('YYYYMM')
     const desiredLength = formats.generateRandomValue(20,30);
     let request_id = nanoid(desiredLength);
@@ -137,6 +137,15 @@ exports.transferPayment = async function (req, res) {
     const va_name_source = req.body.va_name_source;
     const va_name_destination = req.body.va_name_destination;
     const nominal = req.body.nominal;
+
+    await httpCaller({
+      method: 'POST',
+      url: process.env.MS_AUTH_V1_URL + '/auth/verify-code-trx',
+      data: {
+        type: 'tfp',
+        code: code_transaction
+      }
+    })
     let state = {
       type: 'TFP',
       tracking: ['Poin ditarik dari sumber dana poin kamu', 'Respon dari va penerima', 'Berhasil transfer poin ke penerima'],
