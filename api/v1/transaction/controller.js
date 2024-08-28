@@ -141,6 +141,7 @@ exports.transferPayment = async function (req, res) {
     const va_name_source = req.body.va_name_source;
     const va_name_destination = req.body.va_name_destination;
     const nominal = req.body.nominal;
+    const pesan = req.body.pesan;
 
     try {
       await httpCaller({
@@ -165,7 +166,8 @@ exports.transferPayment = async function (req, res) {
       va_number_destination,
       va_name_source,
       va_name_destination,
-      nominal
+      nominal,
+      pesan
     }
 
     const tabelUserTransaction = adrUserTransaction(partition)
