@@ -8,10 +8,14 @@ const logger = require('../../../config/logger');
 const formats = require('../../../config/format');
 const errMsg = require('../../../error/resError');
 const adrVA = require('../../../model/adr_va');
+const adrUserTransaction = require('../../../model/adr_user_transaction');
 const digit = require('n-digit-token');
 const ApiErrorMsg = require('../../../error/apiErrorMsg')
 const HttpStatusCode = require("../../../error/httpStatusCode");
 const httpCaller = require('../../../config/httpCaller');
+const dbconnect = require('../../../config/db').Sequelize;
+const { crc16 } = require('crc');
+const nanoid = require('nanoid-esm')
 
 exports.vaInfo = async function (req, res) {
   try {
@@ -115,5 +119,62 @@ exports.transferInquiry = async function (req, res) {
   } catch (e) {
     logger.errorWithContext({ error: e, message: 'error POST /api/v1/transaction//transfer/inquiry...' });
     return utils.returnErrorFunction(res, 'error POST /api/v1/transaction//transfer/inquiry...', e);
+  }
+}
+
+exports.transferPayment = async function (req, res) {
+  try {
+    const id = uuidv4();
+    const jobPartition = parseInt(crc16(id).toString());
+  
+    const partition = moment().format('YYYYMM')
+    const desiredLength = formats.generateRandomValue(20,30);
+    let request_id = nanoid(desiredLength);
+    request_id = `${request_id}-${partition}`;
+
+    const va_number_source = req.body.va_number_source;
+    const va_number_destination = req.body.va_number_destination;
+    const va_name_source = req.body.va_name_source;
+    const va_name_destination = req.body.va_name_destination;
+    const nominal = req.body.nominal;
+    let state = {
+      type: 'TFP',
+      tracking: ['Poin ditarik dari sumber dana poin kamu', 'Respon dari va penerima', 'Berhasil transfer poin ke penerima'],
+      state_tracking: null
+    }
+    const payload = {
+      va_number_source,
+      va_number_destination,
+      va_name_source,
+      va_name_destination,
+      nominal
+    }
+
+    const tabelUserTransaction = adrUserTransaction(partition)
+    await tabelUserTransaction.create({
+      id: id,
+      created_dt: moment().format('YYYY-MM-DD HH:mm:ss.SSS'),
+      created_by: req.id,
+      modified_dt: moment().format('YYYY-MM-DD HH:mm:ss.SSS'),
+      modified_by: req.id,
+      is_deleted: 0,
+      request_id: request_id,
+      account_id: req.id,
+      amount: nominal,
+      transaction_type: 'TFP',
+      state: JSON.stringify(state),
+      payload: JSON.stringify(payload),
+      status: 0,
+      partition: jobPartition % parseInt(8),
+    })
+
+    const hasil = {
+      request_id: request_id,
+      state: state
+    }
+    return res.status(200).json(rsmg('000000', hasil))
+  } catch (e) {
+    logger.errorWithContext({ error: e, message: 'error POST /api/v1/transaction//transfer/payment...' });
+    return utils.returnErrorFunction(res, 'error POST /api/v1/transaction//transfer/payment...', e);
   }
 }
