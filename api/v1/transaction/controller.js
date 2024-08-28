@@ -140,7 +140,8 @@ exports.transferPayment = async function (req, res) {
     const va_number_destination = req.body.va_number_destination;
     const va_name_source = req.body.va_name_source;
     const va_name_destination = req.body.va_name_destination;
-    const nominal = req.body.nominal;
+    let nominal = req.body.nominal;
+    nominal = nominal.replace(/\./g, '');
     const pesan = req.body.pesan;
 
     try {
