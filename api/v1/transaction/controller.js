@@ -200,7 +200,7 @@ exports.transferPayment = async function (req, res) {
       waktu: moment(date).format('HH:mm'),
       tanggal: moment(date).format('DD MM YYYY'),
       state: state,
-      status: '0',
+      status: '0'
     }
     res.header('access-token', req['access-token']);
     return res.status(200).json(rsmg('000000', hasil))
