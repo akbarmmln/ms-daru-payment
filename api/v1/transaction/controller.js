@@ -188,9 +188,9 @@ exports.transferPayment = async function (req, res) {
     const tabelUserTransaction = adrUserTransaction(partition)
     await tabelUserTransaction.create({
       id: id,
-      created_dt: moment(date).format('YYYY-MM-DD HH:mm:ss.SSS'),
+      created_dt: date,
       created_by: req.id,
-      modified_dt: moment(date).format('YYYY-MM-DD HH:mm:ss.SSS'),
+      modified_dt: date,
       modified_by: req.id,
       is_deleted: 0,
       request_id: request_id,
