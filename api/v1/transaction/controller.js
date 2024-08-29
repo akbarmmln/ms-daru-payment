@@ -201,6 +201,7 @@ exports.transferPayment = async function (req, res) {
       tanggal: moment(date).format('DD MM YYYY'),
       state: state
     }
+    res.header('access-token', req['access-token']);
     return res.status(200).json(rsmg('000000', hasil))
   } catch (e) {
     logger.errorWithContext({ error: e, message: 'error POST /api/v1/transaction//transfer/payment...' });
@@ -245,6 +246,7 @@ exports.transactionDetails = async function(req, res){
         status: data.status
       }
     }
+    res.header('access-token', req['access-token']);
     return res.status(200).json(rsmg('000000', hasil));
   }catch(e){
     logger.errorWithContext({ error: e, message: 'error GET /api/v1/transaction/details/:id...' });
