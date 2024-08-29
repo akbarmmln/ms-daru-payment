@@ -128,6 +128,7 @@ exports.transferInquiry = async function (req, res) {
 
 exports.transferPayment = async function (req, res) {
   try {
+    const type = 'tfp';
     const date = moment().format('YYYY-MM-DD HH:mm:ss.SSS');
     const id = uuidv4();
     const jobPartition = parseInt(crc16(id).toString());
@@ -150,7 +151,7 @@ exports.transferPayment = async function (req, res) {
         method: 'POST',
         url: process.env.MS_AUTH_V1_URL + '/auth/verify-code-trx',
         data: {
-          type: 'tfp',
+          type: type,
           code: code_transaction
         }
       })  
@@ -159,7 +160,7 @@ exports.transferPayment = async function (req, res) {
     }
 
     const state = {
-      type: 'TFP',
+      type: type,
       tracking: ['Poin ditarik dari sumber dana poin kamu', 'Respon dari va penerima', 'Berhasil transfer poin ke penerima'],
       state_tracking: null
     }
@@ -183,7 +184,7 @@ exports.transferPayment = async function (req, res) {
       request_id: request_id,
       account_id: req.id,
       amount: nominal,
-      transaction_type: 'tfp',
+      transaction_type: type,
       state: JSON.stringify(state),
       payload: JSON.stringify(payload),
       status: 0,
@@ -195,7 +196,7 @@ exports.transferPayment = async function (req, res) {
       nominal: nominal,
       va_number_destination: va_number_destination,
       va_name_destination: va_name_destination,
-      type: 'tfp',
+      type: type,
       waktu: moment(date).format('HH:mm:ss.SSS'),
       tanggal: moment(date).format('DD MM YYYY'),
       state: state
