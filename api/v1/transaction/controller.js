@@ -164,15 +164,15 @@ exports.transferPayment = async function (req, res) {
       tracking: [
         {
           title: 'Poin ditarik dari sumber dana poin kamu',
-          status: '0'
+          status: '2'
         },
         {
           title: 'Respon dari va penerima',
-          status: '0'
+          status: '2'
         },
         {
           title: 'Berhasil transfer poin ke penerima',
-          status: '0'
+          status: '2'
         }
       ]
     }
