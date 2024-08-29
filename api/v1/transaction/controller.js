@@ -244,7 +244,7 @@ exports.transactionDetails = async function(req, res){
         waktu: moment(date).format('HH:mm'),
         tanggal: moment(date).format('DD MM YYYY'),
         state: JSON.parse(data.state),
-        status: data.status.toString
+        status: data.status.toString()
       }
     }
     res.header('access-token', req['access-token']);
