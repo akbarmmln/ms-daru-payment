@@ -162,7 +162,7 @@ exports.transferPayment = async function (req, res) {
     const state = {
       type: type,
       tracking: ['Poin ditarik dari sumber dana poin kamu', 'Respon dari va penerima', 'Berhasil transfer poin ke penerima'],
-      state_tracking: null
+      state_tracking: '0'
     }
     const payload = {
       va_number_source,
