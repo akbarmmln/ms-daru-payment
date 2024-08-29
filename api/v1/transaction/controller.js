@@ -199,7 +199,7 @@ exports.transferPayment = async function (req, res) {
       transaction_type: type,
       state: JSON.stringify(state),
       payload: JSON.stringify(payload),
-      status: 0,
+      status: 2,
       partition: jobPartition % parseInt(8),
     })
 
@@ -213,7 +213,7 @@ exports.transferPayment = async function (req, res) {
       tanggal: moment(date).format('DD MM YYYY'),
       state: state,
       payload: payload,
-      status: '0'
+      status: '2'
     }
     res.header('access-token', req['access-token']);
     return res.status(200).json(rsmg('000000', hasil))
