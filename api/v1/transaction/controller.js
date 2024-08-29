@@ -129,7 +129,7 @@ exports.transferInquiry = async function (req, res) {
 exports.transferPayment = async function (req, res) {
   try {
     const type = 'tfp';
-    const date = moment().format('YYYY-MM-DD HH:mm:ss.SSS');
+    const date = formats.getCurrentTimeInJakarta(moment().format('YYYY-MM-DD HH:mm:ss.SSS'))
     const id = uuidv4();
     const jobPartition = parseInt(crc16(id).toString());
     const code_transaction = req.body.code_transaction;
