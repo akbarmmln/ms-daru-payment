@@ -200,6 +200,7 @@ exports.transferPayment = async function (req, res) {
       waktu: moment(date).format('HH:mm'),
       tanggal: moment(date).format('DD MM YYYY'),
       state: state,
+      payload: payload,
       status: '0'
     }
     res.header('access-token', req['access-token']);
@@ -244,6 +245,7 @@ exports.transactionDetails = async function(req, res){
         waktu: moment(date).format('HH:mm'),
         tanggal: moment(date).format('DD MM YYYY'),
         state: JSON.parse(data.state),
+        payload: JSON.parse(data.payload),
         status: data.status.toString()
       }
     }
