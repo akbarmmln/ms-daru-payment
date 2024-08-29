@@ -199,7 +199,8 @@ exports.transferPayment = async function (req, res) {
       type: type,
       waktu: moment(date).format('HH:mm'),
       tanggal: moment(date).format('DD MM YYYY'),
-      state: state
+      state: state,
+      status: '0',
     }
     res.header('access-token', req['access-token']);
     return res.status(200).json(rsmg('000000', hasil))
@@ -243,7 +244,7 @@ exports.transactionDetails = async function(req, res){
         waktu: moment(date).format('HH:mm'),
         tanggal: moment(date).format('DD MM YYYY'),
         state: JSON.parse(data.state),
-        status: data.status
+        status: data.status.toString
       }
     }
     res.header('access-token', req['access-token']);
