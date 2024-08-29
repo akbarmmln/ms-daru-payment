@@ -9,4 +9,6 @@ router.get('/va-info', utils.verifyTokenMs, controller.vaInfo);
 router.post('/transfer/inquiry', utils.verifyTokenMs, controller.transferInquiry);
 router.post('/transfer/payment', utils.verifyTokenMs, controller.transferPayment);
 
+router.get('/details/:id', utils.verifyTokenMs, controller.transactionDetails);
+
 module.exports = router;

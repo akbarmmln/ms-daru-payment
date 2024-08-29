@@ -197,7 +197,7 @@ exports.transferPayment = async function (req, res) {
       va_number_destination: va_number_destination,
       va_name_destination: va_name_destination,
       type: type,
-      waktu: moment(date).format('HH:mm:ss.SSS'),
+      waktu: moment(date).format('HH:mm'),
       tanggal: moment(date).format('DD MM YYYY'),
       state: state
     }
@@ -205,5 +205,48 @@ exports.transferPayment = async function (req, res) {
   } catch (e) {
     logger.errorWithContext({ error: e, message: 'error POST /api/v1/transaction//transfer/payment...' });
     return utils.returnErrorFunction(res, 'error POST /api/v1/transaction//transfer/payment...', e);
+  }
+}
+
+exports.transactionDetails = async function(req, res){
+  try{
+    let hasil;
+    const id = req.params.id;
+    const splitId = id.split('-');
+    const splitIdLenght = splitId.length
+    const partition = splitId[splitIdLenght - 1]
+
+    const tabelUserTransaction = adrUserTransaction(partition)
+    const data = await tabelUserTransaction.findOne({
+      raw: true,
+      where: {
+        request_id: id
+      }
+    })
+
+    if (!data) {
+      throw new ApiErrorMsg(HttpStatusCode.BAD_REQUEST, '70003');
+    }
+
+    if (data && data.transaction_type === 'tfp') {
+      const payload = JSON.parse(data.payload);
+      const va_number_destination = payload.va_number_destination;
+      const va_name_destination = payload.va_name_destination
+      const date = formats.getCurrentTimeInJakarta(moment(data.created_dt).format('YYYY-MM-DD HH:mm:ss.SSS'))
+      hasil = {
+        request_id: data.id,
+        nominal: data.amount,
+        va_number_destination: va_number_destination,
+        va_name_destination: va_name_destination,
+        type: data.transaction_type,
+        waktu: moment(date).format('HH:mm'),
+        tanggal: moment(date).format('DD MM YYYY'),
+        state: JSON.parse(data.state)
+      }
+    }
+    return res.status(200).json(rsmg('000000', hasil));
+  }catch(e){
+    logger.errorWithContext({ error: e, message: 'error GET /api/v1/transaction/details/:id...' });
+    return utils.returnErrorFunction(res, 'error GET /api/v1/transaction/details/:id...', e);
   }
 }
