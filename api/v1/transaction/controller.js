@@ -128,6 +128,7 @@ exports.transferInquiry = async function (req, res) {
 
 exports.transferPayment = async function (req, res) {
   try {
+    const date = moment().format('YYYY-MM-DD HH:mm:ss.SSS');
     const id = uuidv4();
     const jobPartition = parseInt(crc16(id).toString());
     const code_transaction = req.body.code_transaction;
@@ -157,7 +158,7 @@ exports.transferPayment = async function (req, res) {
       return res.status(e.response.status).json(e?.response?.data);
     }
 
-    let state = {
+    const state = {
       type: 'TFP',
       tracking: ['Poin ditarik dari sumber dana poin kamu', 'Respon dari va penerima', 'Berhasil transfer poin ke penerima'],
       state_tracking: null
@@ -174,15 +175,15 @@ exports.transferPayment = async function (req, res) {
     const tabelUserTransaction = adrUserTransaction(partition)
     await tabelUserTransaction.create({
       id: id,
-      created_dt: moment().format('YYYY-MM-DD HH:mm:ss.SSS'),
+      created_dt: moment(date).format('YYYY-MM-DD HH:mm:ss.SSS'),
       created_by: req.id,
-      modified_dt: moment().format('YYYY-MM-DD HH:mm:ss.SSS'),
+      modified_dt: moment(date).format('YYYY-MM-DD HH:mm:ss.SSS'),
       modified_by: req.id,
       is_deleted: 0,
       request_id: request_id,
       account_id: req.id,
       amount: nominal,
-      transaction_type: 'TFP',
+      transaction_type: 'tfp',
       state: JSON.stringify(state),
       payload: JSON.stringify(payload),
       status: 0,
@@ -191,6 +192,12 @@ exports.transferPayment = async function (req, res) {
 
     const hasil = {
       request_id: request_id,
+      nominal: nominal,
+      va_number_destination: va_number_destination,
+      va_name_destination: va_name_destination,
+      type: 'tfp',
+      waktu: moment(date).format('HH:mm:ss.SSS'),
+      tanggal: moment(date).format('DD MM YYYY'),
       state: state
     }
     return res.status(200).json(rsmg('000000', hasil))
