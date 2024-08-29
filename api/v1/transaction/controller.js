@@ -241,7 +241,8 @@ exports.transactionDetails = async function(req, res){
         type: data.transaction_type,
         waktu: moment(date).format('HH:mm'),
         tanggal: moment(date).format('DD MM YYYY'),
-        state: JSON.parse(data.state)
+        state: JSON.parse(data.state),
+        status: data.status
       }
     }
     return res.status(200).json(rsmg('000000', hasil));
