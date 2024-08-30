@@ -90,7 +90,19 @@ exports.createVa = async function (req, res) {
 
 exports.transferInquiry = async function (req, res) {
   try {
+    const account_id = req.id;
     const va_number = req.body.va_number;
+
+    const dataSelft = await adrVA.findOne({
+      raw: true,
+      where: {
+        account_id: account_id
+      }
+    })
+    if (!dataSelft) {
+      return res.status(200).json(rsmg('70002', null));
+    }
+
     const data = await adrVA.findOne({
       raw: true,
       where: {
@@ -100,6 +112,10 @@ exports.transferInquiry = async function (req, res) {
 
     if (!data) {
       return res.status(200).json(rsmg('70002', null));
+    }
+
+    if (dataSelft.va_number === data.va_number) {
+      return res.status(200).json(rsmg('70004', null));
     }
 
     let akun;
@@ -248,7 +264,6 @@ exports.transactionDetails = async function(req, res){
       const va_number_destination = payload.va_number_destination;
       const va_name_destination = payload.va_name_destination
       const date = formats.getCurrentTimeInJakarta(data.created_dt, 'YYYY-MM-DD HH:mm:ss.SSS')
-      console.log('xxxxsdasdasd ', date)
       hasil = {
         request_id: data.request_id,
         nominal: data.amount,
