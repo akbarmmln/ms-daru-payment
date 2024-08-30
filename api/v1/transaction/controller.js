@@ -248,6 +248,7 @@ exports.transactionDetails = async function(req, res){
       const va_number_destination = payload.va_number_destination;
       const va_name_destination = payload.va_name_destination
       const date = formats.getCurrentTimeInJakarta(data.created_dt)
+      console.log('fddfdsfdfdsfsdf ', date)
       hasil = {
         request_id: data.request_id,
         nominal: data.amount,
