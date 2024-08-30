@@ -3,8 +3,8 @@
 const moment = require('moment');
 const logger = require('./logger');
 
-exports.getCurrentTimeInJakarta = function (date) {
-    return moment(date).tz('Asia/Jakarta').format('YYYY-MM-DD HH:mm:ss.SSS');
+exports.getCurrentTimeInJakarta = function (date, format) {
+    return moment(date).tz('Asia/Jakarta').format(format);
 }
 
 exports.dateFormat = async function(date, type){

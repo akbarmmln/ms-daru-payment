@@ -17,7 +17,7 @@ class LoggerPino {
     this.#pino = pino({
       level: this.level,
       messageKey: 'log_message',
-      timestamp: () => `,"@timestamp":"${formats.getCurrentTimeInJakarta(moment().format())}"`,
+      timestamp: () => `,"@timestamp":"${formats.getCurrentTimeInJakarta(moment().format(), 'YYYY-MM-DD HH:mm:ss.SSS')}"`,
       formatters: {
         level(label) {
           return { log_level: label };
