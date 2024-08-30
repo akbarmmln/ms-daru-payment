@@ -59,7 +59,6 @@ const sequelize = new Sequelize(settings.dbname, settings.username, settings.pas
     acquire: 30000,
     idle: 10000
   },
-  timezone: '+07:00'
 });
 
 sequelize.authenticate()
