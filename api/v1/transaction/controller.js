@@ -130,6 +130,7 @@ exports.transferPayment = async function (req, res) {
   try {
     const type = 'tfp';
     const date = formats.getCurrentTimeInJakarta(moment().format('YYYY-MM-DD HH:mm:ss.SSS'))
+    console.log('xxxxasdsadasd ', date)
     const id = uuidv4();
     const jobPartition = parseInt(crc16(id).toString());
     const code_transaction = req.body.code_transaction;
@@ -247,7 +248,8 @@ exports.transactionDetails = async function(req, res){
       const payload = JSON.parse(data.payload);
       const va_number_destination = payload.va_number_destination;
       const va_name_destination = payload.va_name_destination
-      const date = formats.getCurrentTimeInJakarta(moment(data.created_dt).format('YYYY-MM-DD HH:mm:ss.SSS'))
+      const date = formats.getCurrentTimeInJakarta(data.created_dt)
+      console.log('sssssssasdsadasd ', date)
       hasil = {
         request_id: data.request_id,
         nominal: data.amount,
