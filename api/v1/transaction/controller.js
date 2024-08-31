@@ -223,10 +223,16 @@ exports.transferPayment = async function (req, res) {
       transaction: transactionDB
     })
 
-    await mq.sendTOMQ('transfer_poin', {
+    let ress = await mq.sendTOMQ('transfer_poin', {
       ...payload,
       ...state
     });
+    if (ress.status == 200) {
+      await transactionDB.commit();
+    } else {
+      await transactionDB.rollback();
+      throw new ApiErrorMsg(HttpStatusCode.BAD_REQUEST, '10000');
+    }
 
     const hasil = {
       request_id: request_id,
