@@ -226,7 +226,7 @@ exports.transferPayment = async function (req, res) {
     let ress = await mq.sendTOMQ('transfer_poin', {
       request_id: request_id,
       ...payload,
-      ...state
+      state
     });
     if (ress.status == 200) {
       await transactionDB.commit();

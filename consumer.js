@@ -1,9 +1,12 @@
 const logger = require('./config/logger');
+const ApiErrorMsg = require('./error/apiErrorMsg')
+const HttpStatusCode = require("./error/httpStatusCode");
 const mq = require('./config/mq');
 const dbconnect = require('./config/db').Sequelize;
 const sequelize = require('sequelize');
 const adrVA = require('./model/adr_va');
 const adrUserTransaction = require('./model/adr_user_transaction');
+const moment = require('moment');
 
 exports.transferPoin = async () => {
     let mqConnectionObject = await mq.createMqConnection();
@@ -25,7 +28,7 @@ exports.transferPoin = async () => {
         try {
             const request_id = payload.request_id;
             const nominal = payload.nominal;
-            let tracking = payload.tracking;
+            let tracking = payload.state;
             const va_number_source = payload.va_number_source;
             const va_number_destination = payload.va_number_destination;
 
@@ -42,11 +45,11 @@ exports.transferPoin = async () => {
               }
             })
             if (!dataTrx) {
-                tracking[0].status = "0";
-                tracking[1].status = "0";
-                tracking[2].status = "0";
-                await updateUserTransaction({
-                    state: tracking,
+                tracking.tracking[0].status = "0";
+                tracking.tracking[1].status = "0";
+                tracking.tracking[2].status = "0";
+                await updateUserTransaction(tabelUserTransaction, {
+                    state: JSON.stringify(tracking),
                     status: 0
                 }, request_id);
                 throw new ApiErrorMsg(HttpStatusCode.BAD_REQUEST, '70003');
@@ -60,18 +63,18 @@ exports.transferPoin = async () => {
             });
 
             if (data_va_number_source.length <= 0) {
-                tracking[0].status = "0";
-                await updateUserTransaction({
-                    state: tracking,
+                tracking.tracking[0].status = "0";
+                await updateUserTransaction(tabelUserTransaction, {
+                    state: JSON.stringify(tracking),
                     status: 0
                 }, request_id);
                 throw new ApiErrorMsg(HttpStatusCode.BAD_REQUEST, '70002');
             }
         
             if (parseInt(nominal) > parseInt(data_va_number_source[0]['balance'])) {
-                tracking[0].status = "0";
-                await updateUserTransaction({
-                    state: tracking,
+                tracking.tracking[0].status = "0";
+                await updateUserTransaction(tabelUserTransaction, {
+                    state: JSON.stringify(tracking),
                     status: 0
                 }, request_id);
                 throw new ApiErrorMsg(HttpStatusCode.BAD_REQUEST, '70005');
@@ -91,14 +94,15 @@ exports.transferPoin = async () => {
                         },
                         transaction: transactionDB
                     });
-                    tracking[0].status = "1";
-                    await updateUserTransaction({
-                        state: tracking,
+                    tracking.tracking[0].status = "1";
+                    await updateUserTransaction(tabelUserTransaction, {
+                        state: JSON.stringify(tracking),
                     }, request_id);    
                 } catch (e) {
-                    tracking[0].status = "0";
-                    await updateUserTransaction({
-                        state: tracking,
+                    console.log('jhjhkjhjjhkh ', e)
+                    tracking.tracking[0].status = "0";
+                    await updateUserTransaction(tabelUserTransaction, {
+                        state: JSON.stringify(tracking),
                         status: 0
                     }, request_id);    
                     throw new ApiErrorMsg(HttpStatusCode.BAD_REQUEST, '70006');
@@ -113,10 +117,10 @@ exports.transferPoin = async () => {
             });
 
             if (data_va_number_destination.length <= 0) {
-                tracking[0].status = "0";
-                tracking[1].status = "0";
-                await updateUserTransaction({
-                    state: tracking,
+                tracking.tracking[0].status = "0";
+                tracking.tracking[1].status = "0";
+                await updateUserTransaction(tabelUserTransaction, {
+                    state: JSON.stringify(tracking),
                     status: 0
                 }, request_id);
                 throw new ApiErrorMsg(HttpStatusCode.BAD_REQUEST, '70002');
@@ -136,28 +140,29 @@ exports.transferPoin = async () => {
                     },
                     transaction: transactionDB
                 });
-                tracking[1].status = "1";
-                await updateUserTransaction({
-                    state: tracking,
+                tracking.tracking[1].status = "1";
+                await updateUserTransaction(tabelUserTransaction, {
+                    state: JSON.stringify(tracking),
                 }, request_id);
             } catch (e) {
-                tracking[0].status = "0";
-                tracking[1].status = "0";
-                await updateUserTransaction({
-                    state: tracking,
+                tracking.tracking[0].status = "0";
+                tracking.tracking[1].status = "0";
+                await updateUserTransaction(tabelUserTransaction, {
+                    state: JSON.stringify(tracking),
                     status: 0
                 }, request_id);
                 throw new ApiErrorMsg(HttpStatusCode.BAD_REQUEST, '70007');
             }
             //end add va number destination
 
-            tracking[2].status = "1";
-            await updateUserTransaction({
-                state: tracking,
+            tracking.tracking[2].status = "1";
+            await updateUserTransaction(tabelUserTransaction, {
+                state: JSON.stringify(tracking),
                 status: 1
             }, request_id);
             await transactionDB.commit();
         } catch (e) {
+            console.log('errror hahahhaha', e)
             await transactionDB.rollback();
         }
     }, {
@@ -165,8 +170,8 @@ exports.transferPoin = async () => {
     });
 }
 
-const updateUserTransaction = async function (payload, request_id) {
-    await adrUserTransaction.update(payload, {
+const updateUserTransaction = async function (tabelUserTransaction, payload, request_id) {
+    await tabelUserTransaction.update(payload, {
         where: {
             request_id: request_id
         }

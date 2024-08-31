@@ -9,6 +9,6 @@ let PORT = process.env.PORT
 
 const server = app.listen(PORT, () => logger.infoWithContext(`API Server started. Listening on port:${PORT}`));
 // mqttConfig.mqtt();
-// consumer.transferPoin().catch(error => logger.errorWithContext({ error, message: 'Error consume init project' }));
+consumer.transferPoin().catch(error => logger.errorWithContext({ error, message: 'Error consume init project' }));
 
 module.exports = server;
