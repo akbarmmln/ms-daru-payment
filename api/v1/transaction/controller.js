@@ -16,6 +16,7 @@ const httpCaller = require('../../../config/httpCaller');
 const dbconnect = require('../../../config/db').Sequelize;
 const { crc16 } = require('crc');
 const nanoid = require('nanoid-esm')
+const mq = require('../../../config/mq')
 
 exports.vaInfo = async function (req, res) {
   try {
@@ -144,6 +145,7 @@ exports.transferInquiry = async function (req, res) {
 
 exports.transferPayment = async function (req, res) {
   try {
+    const transactionDB = await dbconnect.transaction();
     const type = 'tfp';
     const date = moment().format('YYYY-MM-DD HH:mm:ss.SSS')
     const id = uuidv4();
@@ -217,7 +219,14 @@ exports.transferPayment = async function (req, res) {
       payload: JSON.stringify(payload),
       status: 2,
       partition: jobPartition % parseInt(8),
+    }, {
+      transaction: transactionDB
     })
+
+    await mq.sendTOMQ('transfer_poin', {
+      ...payload,
+      ...state
+    });
 
     const hasil = {
       request_id: request_id,

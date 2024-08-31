@@ -20,5 +20,13 @@ module.exports = {
         password: process.env.PASS_MAIL,
         port: process.env.PORT_MAIL
     },
-    secret: process.env.SECRET
+    secret: process.env.SECRET,
+    mq: {
+        protocol: 'amqp',
+        hostname: process.env.MQ_HOSTNAME,
+        port: 5672,
+        username: process.env.MQ_USERNAME,
+        password: process.env.MQ_PASSWORD,
+        vhost: process.env.MQ_VHOST,
+    }
 };

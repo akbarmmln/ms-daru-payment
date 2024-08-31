@@ -16,6 +16,7 @@
     },
     "dependencies": {
         "@aws-sdk/client-s3": "^3.484.0",
+        "amqplib": "^0.10.4",
         "async_hooks": "^1.0.0",
         "aws-sdk": "^2.1528.0",
         "axios": "^1.7.3",
