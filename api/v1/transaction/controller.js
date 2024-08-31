@@ -151,7 +151,7 @@ exports.transferPayment = async function (req, res) {
     const id = uuidv4();
     const jobPartition = parseInt(crc16(id).toString());
     const code_transaction = req.body.code_transaction;
-    const partition = moment().format('YYYYMM')
+    const partition = formats.getCurrentTimeInJakarta(moment().format(), 'YYYYMM');
     const desiredLength = formats.generateRandomValue(20,30);
     let request_id = nanoid(desiredLength);
     request_id = `${request_id}-${partition}`;
@@ -304,8 +304,7 @@ exports.transactionDetails = async function(req, res){
 exports.transactionHistory = async function (req, res) {
   try {
     const id = req.id;
-    const date = formats.getCurrentTimeInJakarta(moment().format(), 'YYYY-MM-DD');
-    const partition = moment(date).format('YYYYMM');
+    const partition = formats.getCurrentTimeInJakarta(moment().format(), 'YYYYMM');
 
     const tabelUserTransaction = adrUserTransaction(partition);
     const data = await tabelUserTransaction.findOne({
