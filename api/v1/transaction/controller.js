@@ -300,3 +300,29 @@ exports.transactionDetails = async function(req, res){
     return utils.returnErrorFunction(res, 'error GET /api/v1/transaction/details/:id...', e);
   }
 }
+
+exports.transactionHistory = async function (req, res) {
+  try {
+    const id = req.id;
+    const date = formats.getCurrentTimeInJakarta(moment().format(), 'YYYY-MM-DD');
+    const partition = moment(date).format('YYYYMM');
+
+    const tabelUserTransaction = adrUserTransaction(partition);
+    const data = await tabelUserTransaction.findOne({
+      raw: true,
+      where: {
+        account_id: id
+      }
+    })
+
+    if (!data) {
+      return res.status(200).json(rsmg('000000', []));
+    }
+
+
+    return res.status(200).json(rsmg('000000', data));
+  } catch (e) {
+    logger.errorWithContext({ error: e, message: 'error GET /api/v1/transaction/history...' });
+    return utils.returnErrorFunction(res, 'error GET /api/v1/transaction/history...', e);
+  }
+}
