@@ -7,6 +7,7 @@ const errCode = {
   '70005': 'nominal transaksi lebih besar dari saldo',
   '70006': 'gagal potong saldo',
   '70007': 'gagal tambah saldo',
+  '70008': 'maksimal pencarian tanggal adalah 60 hari',
 };
 
 module.exports = errCode;

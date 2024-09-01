@@ -17,6 +17,7 @@ const dbconnect = require('../../../config/db').Sequelize;
 const { crc16 } = require('crc');
 const nanoid = require('nanoid-esm')
 const mq = require('../../../config/mq')
+const { Op } = require('sequelize');
 
 exports.vaInfo = async function (req, res) {
   try {
@@ -303,23 +304,58 @@ exports.transactionDetails = async function(req, res){
 
 exports.transactionHistory = async function (req, res) {
   try {
-    const id = req.id;
-    const partition = formats.getCurrentTimeInJakarta(moment().format(), 'YYYYMM');
+    function getDatesBetween(startDate, endDate) {
+      let dates = [];
+      let currentDate = new Date(startDate);
 
-    const tabelUserTransaction = adrUserTransaction(partition);
-    const data = await tabelUserTransaction.findOne({
-      raw: true,
-      where: {
-        account_id: id
+      while (currentDate <= new Date(endDate)) {
+        dates.push(new Date(currentDate));
+        currentDate.setDate(currentDate.getDate() + 1);
       }
-    })
 
-    if (!data) {
-      return res.status(200).json(rsmg('000000', []));
+      return dates;
     }
 
+    let hasil = [];
+    const id = req.id;
+    const date_start = req.body.date_start;
+    const date_end = req.body.date_end;
+    const datesArray = getDatesBetween(date_start, date_end);
+    if (datesArray.length > 60) {
+      throw new ApiErrorMsg(HttpStatusCode.BAD_REQUEST, '70008');
+    }
 
-    return res.status(200).json(rsmg('000000', data));
+    const groupedDates = datesArray.reduce((acc, date) => {
+      const anDate = formats.getCurrentTimeInJakarta(date, 'YYYY-MM-DD')
+      const yearMonth = formats.getCurrentTimeInJakarta(anDate, 'YYYYMM')
+      let group = acc.find(g => g.group === yearMonth);
+      if (!group) {
+        group = { group: yearMonth, data: [] };
+        acc.push(group);
+      }
+      group.data.push(anDate);
+      return acc;
+    }, []);
+
+    for (let k=0; k<groupedDates.length; k++) {
+      const group = groupedDates[k].group;
+      const tanggal = groupedDates[k].data;
+      let where;
+      if (tanggal.length > 1) {
+        where = dbconnect.literal(`account_id = '${id}' and date(created_dt) between '${formats.getCurrentTimeInJakarta(tanggal[0], 'YYYY-MM-DD')}' and '${formats.getCurrentTimeInJakarta(tanggal[tanggal.length - 1], 'YYYY-MM-DD')}'`)
+      } else {
+        where = dbconnect.literal(`account_id = '${id}' and date(created_dt) between '${formats.getCurrentTimeInJakarta(tanggal[0], 'YYYY-MM-DD')}' and '${formats.getCurrentTimeInJakarta(tanggal[0], 'YYYY-MM-DD')}'`)
+      }
+      const tabelUserTransaction = adrUserTransaction(group);
+      const data = await tabelUserTransaction.findAll({
+        raw: true,
+        where: where
+      })
+      hasil.push(...data)
+    }
+
+    res.header('access-token', req['access-token']);
+    return res.status(200).json(rsmg('000000', hasil));
   } catch (e) {
     logger.errorWithContext({ error: e, message: 'error GET /api/v1/transaction/history...' });
     return utils.returnErrorFunction(res, 'error GET /api/v1/transaction/history...', e);
