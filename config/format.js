@@ -61,6 +61,22 @@ exports.dateFormatIndo = async function(date){
   }
 }
 
+exports.convertToLiteralDate = async function(dateString) {
+    const months = [
+        "Januari", "Februari", "Maret", "April", "Mei", "Juni", 
+        "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+    ];
+
+    // Split the date string into year, month, and day
+    const [year, month, day] = dateString.split("-");
+
+    // Convert month number to Indonesian month name
+    const monthName = months[parseInt(month) - 1];
+
+    // Return the formatted date string
+    return `${parseInt(day)} ${monthName} ${year}`;
+}
+
 exports.generateRandomValue = function (min, max) {
     // Ensure min and max are integers
     min = Math.ceil(min);

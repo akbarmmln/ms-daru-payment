@@ -363,7 +363,7 @@ exports.transactionHistory = async function (req, res) {
 
     if (hasil.length > 0) {
       const groupHasil = hasil.reduce((acc, currentItem) => {
-        const group = formats.getCurrentTimeInJakarta(currentItem.created_dt, 'YYYY-MM-DD');
+        const group = formats.convertToLiteralDate(formats.getCurrentTimeInJakarta(currentItem.created_dt, 'YYYY-MM-DD'));
 
         if (!acc[group]) {
           acc[group] = { group, data: [] };
