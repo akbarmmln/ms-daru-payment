@@ -351,11 +351,34 @@ exports.transactionHistory = async function (req, res) {
         raw: true,
         where: where
       })
-      hasil.push(...data)
+
+      const modifiedData = data.map(item => {
+        item.created_dt = formats.getCurrentTimeInJakarta(item.created_dt, 'YYYY-MM-DD HH:mm:ss.SSS');
+        item.modified_dt = formats.getCurrentTimeInJakarta(item.modified_dt, 'YYYY-MM-DD HH:mm:ss.SSS');
+        return item;
+      });
+
+      hasil.push(...modifiedData)
     }
 
-    res.header('access-token', req['access-token']);
-    return res.status(200).json(rsmg('000000', hasil));
+    if (hasil.length > 0) {
+      const groupHasil = hasil.reduce((acc, currentItem) => {
+        const group = formats.getCurrentTimeInJakarta(currentItem.created_dt, 'YYYY-MM-DD');
+
+        if (!acc[group]) {
+          acc[group] = { group, data: [] };
+        }
+
+        acc[group].data.push(currentItem);
+        return acc;
+      }, {});
+      const result = Object.values(groupHasil);
+      res.header('access-token', req['access-token']);
+      return res.status(200).json(rsmg('000000', result));  
+    } else {
+      res.header('access-token', req['access-token']);
+      return res.status(200).json(rsmg('000000', []));  
+    }
   } catch (e) {
     logger.errorWithContext({ error: e, message: 'error GET /api/v1/transaction/history...' });
     return utils.returnErrorFunction(res, 'error GET /api/v1/transaction/history...', e);
