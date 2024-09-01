@@ -359,12 +359,12 @@ exports.transactionHistory = async function (req, res) {
         return item;
       });
 
-      const sortedData = lodash.orderBy(modifiedData, ['created_dt'], ['desc']);
       hasil.push(...sortedData)
     }
 
     if (hasil.length > 0) {
-      const groupHasil = hasil.reduce((acc, currentItem) => {
+      const hasilModified = lodash.orderBy(hasil, ['created_dt'], ['desc']);
+      const groupHasil = hasilModified.reduce((acc, currentItem) => {
         const group = formats.convertToLiteralDate(moment(currentItem.created_dt).format('YYYY-MM-DD'));
 
         if (!acc[group]) {
