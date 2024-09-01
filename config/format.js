@@ -61,7 +61,7 @@ exports.dateFormatIndo = async function(date){
   }
 }
 
-exports.convertToLiteralDate = async function(dateString) {
+exports.convertToLiteralDate = function(dateString) {
     const months = [
         "Januari", "Februari", "Maret", "April", "Mei", "Juni", 
         "Juli", "Agustus", "September", "Oktober", "November", "Desember"
