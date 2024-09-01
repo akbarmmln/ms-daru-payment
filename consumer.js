@@ -7,6 +7,9 @@ const sequelize = require('sequelize');
 const adrVA = require('./model/adr_va');
 const adrUserTransaction = require('./model/adr_user_transaction');
 const moment = require('moment');
+const uuidv4 = require('uuid').v4;
+const formats = require('./config/format');
+const nanoid = require('nanoid-esm')
 
 exports.transferPoin = async () => {
     let mqConnectionObject = await mq.createMqConnection();
@@ -24,6 +27,7 @@ exports.transferPoin = async () => {
         let payload = JSON.parse(msg.content.toString());
         logger.infoWithContext(`starting consumer transfer poin ${JSON.stringify(payload)}`);
         const transactionDB = await dbconnect.transaction();
+        let globalDataTrx;
 
         try {
             const request_id = payload.request_id;
@@ -54,7 +58,8 @@ exports.transferPoin = async () => {
                 }, request_id);
                 throw new ApiErrorMsg(HttpStatusCode.BAD_REQUEST, '70003');
             }
-            
+            globalDataTrx = dataTrx;
+
             //start deduct va number source
             const data_va_number_source = await dbconnect.query("SELECT * FROM adr_va WHERE va_number = :va_number_ FOR UPDATE",
             { replacements: { va_number_: va_number_source }, type: sequelize.QueryTypes.SELECT, transaction: transactionDB },
@@ -99,7 +104,6 @@ exports.transferPoin = async () => {
                         state: JSON.stringify(tracking),
                     }, request_id);    
                 } catch (e) {
-                    console.log('jhjhkjhjjhkh ', e)
                     tracking.tracking[0].status = "0";
                     await updateUserTransaction(tabelUserTransaction, {
                         state: JSON.stringify(tracking),
@@ -162,12 +166,41 @@ exports.transferPoin = async () => {
             }, request_id);
             await transactionDB.commit();
         } catch (e) {
-            console.log('errror hahahhaha', e)
             await transactionDB.rollback();
+            doReversal(globalDataTrx);
         }
     }, {
         noAck: true
     });
+}
+
+const doReversal = async function (dataTransaction) {
+    try {
+        const partition = formats.getCurrentTimeInJakarta(moment().format('YYYYMM'))
+        const desiredLength = formats.generateRandomValue(20,30);
+        let request_id = nanoid(desiredLength);
+        request_id = `${request_id}-${partition}`;
+    
+        const tabelUserTransaction = adrUserTransaction(partition)
+        await tabelUserTransaction.create({
+            id: uuidv4(),
+            created_dt: moment().format('YYYY-MM-DD HH:mm:ss.SSS'),
+            created_by: 'SYSTEM-REVERSAL',
+            modified_dt: moment().format('YYYY-MM-DD HH:mm:ss.SSS'),
+            modified_by: 'SYSTEM-REVERSAL',
+            is_deleted: 0,
+            request_id: request_id,
+            account_id: dataTransaction.account_id,
+            amount: dataTransaction.amount,
+            transaction_type: 'reversal',
+            state: null,
+            payload: null,
+            status: 1,
+            partition: null
+        })
+    } catch (e) {
+        logger.errorWithContext({ error: e, message: 'error do reversal' })
+    }
 }
 
 const updateUserTransaction = async function (tabelUserTransaction, payload, request_id) {
