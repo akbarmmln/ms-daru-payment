@@ -176,7 +176,7 @@ exports.transferPoin = async () => {
 
 const doReversal = async function (dataTransaction) {
     try {
-        const partition = formats.getCurrentTimeInJakarta(moment().format(), 'YYYYMMDD')
+        const partition = formats.getCurrentTimeInJakarta(moment().format(), 'YYYYMM')
         const desiredLength = formats.generateRandomValue(20,30);
         let request_id = nanoid(desiredLength);
         request_id = `${request_id}-${partition}`;
