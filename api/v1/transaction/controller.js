@@ -359,7 +359,7 @@ exports.transactionHistory = async function (req, res) {
         return item;
       });
 
-      hasil.push(...sortedData)
+      hasil.push(...modifiedData)
     }
 
     if (hasil.length > 0) {
