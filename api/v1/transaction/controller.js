@@ -18,6 +18,7 @@ const { crc16 } = require('crc');
 const nanoid = require('nanoid-esm')
 const mq = require('../../../config/mq')
 const { Op } = require('sequelize');
+const lodash = require('lodash');
 
 exports.vaInfo = async function (req, res) {
   try {
@@ -358,7 +359,8 @@ exports.transactionHistory = async function (req, res) {
         return item;
       });
 
-      hasil.push(...modifiedData)
+      const sortedData = orderBy(modifiedData, ['created_dt'], ['desc']);
+      hasil.push(...sortedData)
     }
 
     if (hasil.length > 0) {
