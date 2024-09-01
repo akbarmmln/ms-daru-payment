@@ -361,25 +361,24 @@ exports.transactionHistory = async function (req, res) {
       hasil.push(...modifiedData)
     }
 
-    return res.status(200).json(rsmg('000000', hasil))
-    // if (hasil.length > 0) {
-    //   const groupHasil = hasil.reduce((acc, currentItem) => {
-    //     const group = formats.convertToLiteralDate(formats.getCurrentTimeInJakarta(currentItem.created_dt, 'YYYY-MM-DD'));
+    if (hasil.length > 0) {
+      const groupHasil = hasil.reduce((acc, currentItem) => {
+        const group = formats.convertToLiteralDate(moment(currentItem.created_dt).format('YYYY-MM-DD'));
 
-    //     if (!acc[group]) {
-    //       acc[group] = { group, data: [] };
-    //     }
+        if (!acc[group]) {
+          acc[group] = { group, data: [] };
+        }
 
-    //     acc[group].data.push(currentItem);
-    //     return acc;
-    //   }, {});
-    //   const result = Object.values(groupHasil);
-    //   res.header('access-token', req['access-token']);
-    //   return res.status(200).json(rsmg('000000', result));  
-    // } else {
-    //   res.header('access-token', req['access-token']);
-    //   return res.status(200).json(rsmg('000000', []));  
-    // }
+        acc[group].data.push(currentItem);
+        return acc;
+      }, {});
+      const result = Object.values(groupHasil);
+      res.header('access-token', req['access-token']);
+      return res.status(200).json(rsmg('000000', result));  
+    } else {
+      res.header('access-token', req['access-token']);
+      return res.status(200).json(rsmg('000000', []));  
+    }
   } catch (e) {
     logger.errorWithContext({ error: e, message: 'error GET /api/v1/transaction/history...' });
     return utils.returnErrorFunction(res, 'error GET /api/v1/transaction/history...', e);
