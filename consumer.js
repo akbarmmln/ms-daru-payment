@@ -148,6 +148,37 @@ exports.transferPoin = async () => {
                 await updateUserTransaction(tabelUserTransaction, {
                     state: JSON.stringify(tracking),
                 }, request_id);
+
+                const destinationPartition = formats.getCurrentTimeInJakarta(moment().format(), 'YYYYMM');
+                const tabelUserTransactionDesc = adrUserTransaction(destinationPartition);
+                const desiredLength = formats.generateRandomValue(20,30);
+                let request_id_destination = nanoid(desiredLength);
+                request_id_destination = `${request_id_destination}-${destinationPartition}`;
+            
+                await tabelUserTransactionDesc.create({
+                  id: uuidv4(),
+                  created_dt: moment().format('YYYY-MM-DD HH:mm:ss.SSS'),
+                  created_by: data_va_number_destination[0].account_id,
+                  modified_dt: moment().format('YYYY-MM-DD HH:mm:ss.SSS'),
+                  modified_by: data_va_number_destination[0].account_id,
+                  is_deleted: 0,
+                  request_id: request_id_destination,
+                  account_id: data_va_number_destination[0].account_id,
+                  amount: nominal,
+                  transaction_type: 'cash-in',
+                  state:  null,
+                  payload: JSON.stringify({
+                    va_number_source: payload.va_number_source,
+                    va_name_source: payload.va_name_source,
+                    va_number_destination: payload.va_number_destination,
+                    va_name_destination: payload.va_name_destination
+                  }),
+                  status: 1,
+                  partition: null
+                }, {
+                  transaction: transactionDB
+                })
+
             } catch (e) {
                 tracking.tracking[0].status = "0";
                 tracking.tracking[1].status = "0";
