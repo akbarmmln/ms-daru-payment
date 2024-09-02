@@ -295,9 +295,14 @@ exports.transactionDetails = async function(req, res){
         status: data.status.toString()
       }
     } else if (data && data.transaction_type === 'cash-in') {
+      const payload = JSON.parse(data.payload);
+      const va_number_source = payload.va_number_source;
+      const va_name_source = payload.va_name_source
       const date = formats.getCurrentTimeInJakarta(data.created_dt, 'YYYY-MM-DD HH:mm:ss.SSS')
       hasil = {
         request_id: data.request_id,
+        va_number_source: va_number_source,
+        va_name_source: va_name_source,
         nominal: data.amount,
         type: data.transaction_type,
         waktu: moment(date).format('HH:mm'),
