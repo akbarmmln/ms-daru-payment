@@ -148,7 +148,7 @@ exports.transferInquiry = async function (req, res) {
 exports.transferPayment = async function (req, res) {
   try {
     const transactionDB = await dbconnect.transaction();
-    const type = 'tfp';
+    const type = 'transfer';
     const date = moment().format('YYYY-MM-DD HH:mm:ss.SSS')
     const id = uuidv4();
     const jobPartition = parseInt(crc16(id).toString());
