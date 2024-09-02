@@ -294,7 +294,19 @@ exports.transactionDetails = async function(req, res){
         payload: JSON.parse(data.payload),
         status: data.status.toString()
       }
+    } else if (data && data.transaction_type === 'cash-in') {
+      const date = formats.getCurrentTimeInJakarta(data.created_dt, 'YYYY-MM-DD HH:mm:ss.SSS')
+      hasil = {
+        request_id: data.request_id,
+        nominal: data.amount,
+        type: data.transaction_type,
+        waktu: moment(date).format('HH:mm'),
+        tanggal: moment(date).format('DD MM YYYY'),
+        payload: JSON.parse(data.payload),
+        status: data.status.toString()
+      }
     }
+
     res.header('access-token', req['access-token']);
     return res.status(200).json(rsmg('000000', hasil));
   }catch(e){
