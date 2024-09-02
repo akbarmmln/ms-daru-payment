@@ -277,7 +277,7 @@ exports.transactionDetails = async function(req, res){
       throw new ApiErrorMsg(HttpStatusCode.BAD_REQUEST, '70003');
     }
 
-    if (data && data.transaction_type === 'tfp') {
+    if (data && data.transaction_type === 'transfer') {
       const payload = JSON.parse(data.payload);
       const va_number_destination = payload.va_number_destination;
       const va_name_destination = payload.va_name_destination
