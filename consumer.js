@@ -171,7 +171,8 @@ exports.transferPoin = async () => {
                     va_number_source: payload.va_number_source,
                     va_name_source: payload.va_name_source,
                     va_number_destination: payload.va_number_destination,
-                    va_name_destination: payload.va_name_destination
+                    va_name_destination: payload.va_name_destination,
+                    pesan: payload.pesan
                   }),
                   status: 1,
                   partition: null
