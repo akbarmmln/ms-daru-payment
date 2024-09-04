@@ -17,7 +17,6 @@ const dbconnect = require('../../../config/db').Sequelize;
 const { crc16 } = require('crc');
 const nanoid = require('nanoid-esm')
 const mq = require('../../../config/mq')
-const { Op } = require('sequelize');
 const lodash = require('lodash');
 
 exports.vaInfo = async function (req, res) {

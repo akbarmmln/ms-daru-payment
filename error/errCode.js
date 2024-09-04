@@ -8,6 +8,7 @@ const errCode = {
   '70006': 'gagal potong saldo',
   '70007': 'gagal tambah saldo',
   '70008': 'maksimal pencarian tanggal adalah 60 hari',
+  '70009': 'request body not allowed',
 };
 
 module.exports = errCode;

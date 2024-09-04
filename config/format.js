@@ -2,6 +2,10 @@
 
 const moment = require('moment');
 const logger = require('./logger');
+const months = [
+    "Januari", "Februari", "Maret", "April", "Mei", "Juni", 
+    "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+];
 
 exports.getCurrentTimeInJakarta = function (date, format) {
     return moment(date).tz('Asia/Jakarta').format(format);
@@ -61,12 +65,15 @@ exports.dateFormatIndo = async function(date){
   }
 }
 
-exports.convertToLiteralDate = function(dateString) {
-    const months = [
-        "Januari", "Februari", "Maret", "April", "Mei", "Juni", 
-        "Juli", "Agustus", "September", "Oktober", "November", "Desember"
-    ];
+exports.convertToLiteralMonth = function(month) {
+    // Convert month number to Indonesian month name
+    const monthName = months[parseInt(month) - 1];
 
+    // Return the formatted date string
+    return monthName;
+}
+
+exports.convertToLiteralDate = function(dateString) {
     // Split the date string into year, month, and day
     const [year, month, day] = dateString.split("-");
 
