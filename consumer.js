@@ -115,13 +115,13 @@ exports.transferPoin = async () => {
 
             //start add va number destination
             const data_va_number_destination = await dbconnect.query("SELECT * FROM adr_va WHERE va_number = :va_number_ FOR UPDATE",
-            { replacements: { va_number_: va_number_destination }, type: sequelize.QueryTypes.SELECT, transaction: transactionDB },
+            { replacements: { va_number_: 'va_number_destination' }, type: sequelize.QueryTypes.SELECT, transaction: transactionDB },
             {
               raw: true
             });
 
             if (data_va_number_destination.length <= 0) {
-                tracking.tracking[0].status = "0";
+                tracking.tracking[0].status = "1";
                 tracking.tracking[1].status = "0";
                 await updateUserTransaction(tabelUserTransaction, {
                     state: JSON.stringify(tracking),
@@ -179,7 +179,6 @@ exports.transferPoin = async () => {
                 }, {
                   transaction: transactionDB
                 })
-
             } catch (e) {
                 tracking.tracking[0].status = "0";
                 tracking.tracking[1].status = "0";
