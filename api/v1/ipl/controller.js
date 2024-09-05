@@ -16,9 +16,21 @@ const adrPembayaranIPL = require('../../../model/adr_pembayaran_ipl');
 exports.initIPL = async function (req, res) {
   try {
     const id = req.id;
-    const currentYear = formats.getCurrentTimeInJakarta(moment().format(), 'YYYY');
+    const tahun_implementasi = req.body.tahun_implementasi;
 
-    const tabelBayarIPL = adrPembayaranIPL(currentYear);
+    try {
+      await httpCaller({
+        method: 'GET',
+        url: process.env.MS_SUPPORT_V1_URL + '/master-organitation/config',
+        data: {
+          tahun_implementasi: tahun_implementasi
+        }
+      })
+    } catch (e) {
+      return res.status(e.response.status).json(e?.response?.data);
+    }
+
+    const tabelBayarIPL = adrPembayaranIPL(tahun_implementasi);
 
     const data = await tabelBayarIPL.findAll({
       raw: true,
@@ -29,7 +41,7 @@ exports.initIPL = async function (req, res) {
       order: [['pembayaran_bulan', 'ASC']]
     })
     const hasil = {
-      currentYear: currentYear,
+      tahun_implementasi: tahun_implementasi,
       dataIPL: data
     }
     res.header('access-token', req['access-token']);
@@ -44,6 +56,8 @@ exports.checkTagihan = async function (req, res) {
   try {
     const id = req.id;
     const bulan = req.body.bulan;
+    const tahun_implementasi = req.body.tahun_implementasi;
+
     let hasil = [];
 
     if (!Array.isArray(bulan)) {
@@ -55,6 +69,9 @@ exports.checkTagihan = async function (req, res) {
       config = await httpCaller({
         method: 'GET',
         url: process.env.MS_SUPPORT_V1_URL + '/master-organitation/config',
+        data: {
+          tahun_implementasi: tahun_implementasi
+        }
       })
       config = config?.data?.data;
     } catch (e) {
