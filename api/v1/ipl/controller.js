@@ -20,7 +20,7 @@ exports.initIPL = async function (req, res) {
 
     try {
       await httpCaller({
-        method: 'GET',
+        method: 'POST',
         url: process.env.MS_SUPPORT_V1_URL + '/master-organitation/config',
         data: {
           tahun_implementasi: tahun_implementasi
@@ -67,13 +67,14 @@ exports.checkTagihan = async function (req, res) {
     let config;
     try {
       config = await httpCaller({
-        method: 'GET',
+        method: 'POST',
         url: process.env.MS_SUPPORT_V1_URL + '/master-organitation/config',
         data: {
           tahun_implementasi: tahun_implementasi
         }
       })
       config = config?.data?.data;
+      console.log('sadasdsadasd ', JSON.stringify(config))
     } catch (e) {
       return res.status(e.response.status).json(e?.response?.data);
     }
