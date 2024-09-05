@@ -115,7 +115,7 @@ exports.transferPoin = async () => {
 
             //start add va number destination
             const data_va_number_destination = await dbconnect.query("SELECT * FROM adr_va WHERE va_number = :va_number_ FOR UPDATE",
-            { replacements: { va_number_: 'va_number_destination' }, type: sequelize.QueryTypes.SELECT, transaction: transactionDB },
+            { replacements: { va_number_: va_number_destination }, type: sequelize.QueryTypes.SELECT, transaction: transactionDB },
             {
               raw: true
             });
