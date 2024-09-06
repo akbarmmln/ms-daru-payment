@@ -8,4 +8,6 @@ router.post('/check-tagihan', utils.verifyTokenMs, controller.checkTagihan);
 
 router.post('/send-invoice/bank-transfer', utils.verifyTokenMs, controller.sendInvoiceBankTransfer);
 
+router.post('/cancel', utils.verifyTokenMs, controller.cancelInvoice);
+
 module.exports = router;

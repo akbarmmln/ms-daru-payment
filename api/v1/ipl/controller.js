@@ -209,7 +209,60 @@ exports.sendInvoiceBankTransfer = async function (req, res) {
       throw new ApiErrorMsg(HttpStatusCode.BAD_REQUEST, '70004');
     }
   } catch (e) {
-    logger.errorWithContext({ error: e, message: 'error GET /api/v1/ipl/check-tagihan...' });
-    return utils.returnErrorFunction(res, 'error GET /api/v1/ipl/send-invoice...', e);
+    logger.errorWithContext({ error: e, message: 'error GET /api/v1/ipl/send-invoice/bank-transfer...' });
+    return utils.returnErrorFunction(res, 'error POST /api/v1/ipl/send-invoice/bank-transfer...', e);
+  }
+}
+
+exports.cancelInvoice = async function (req, res) {
+  try {
+    const order_id = req.body.order_id;
+    const splitId = order_id.split('-');
+    const splitIdLenght = splitId.length
+    const partition = splitId[splitIdLenght - 1]
+
+    const tabelInvoicing = paymentInvoicing(partition);
+    const data = await tabelInvoicing.findOne({
+      raw: true,
+      where: {
+        order_id: order_id
+      }
+    })
+
+    if (!data) {
+      throw new ApiErrorMsg(HttpStatusCode.BAD_REQUEST, '70003');
+    }
+
+    const usr = process.env.MIDTRANS_USR;
+    const pass = process.env.MIDTRANS_PASS;
+    const base64Credentials = btoa(`${usr}:${pass}`);
+    const fullPayloadRequest = {
+      method: 'POST',
+      url: process.env.MIDTRANS_URL + `/${data.order_id}/cancel`,
+      headers: {
+        authorization: `Basic ${base64Credentials}`
+      }
+    }
+    logger.infoWithContext(`fullPayloadRequest ${JSON.stringify(fullPayloadRequest)}`)
+    const ressInvoice = await httpCaller(fullPayloadRequest)
+    logger.infoWithContext(`fullResponRequest ${JSON.stringify(ressInvoice.data)}`)
+
+    if (['200', '201', '202'].includes(ressInvoice.data.status_code)) {
+      await tabelInvoicing.update({
+        modified_dt: moment().format('YYYY-MM-DD HH:mm:ss'),
+        modified_by: req.id,
+        transaction_status: ressInvoice.data.transaction_status
+      }, {
+        where: {
+          id: data.id
+        }
+      })
+    } else {
+      throw new ApiErrorMsg(HttpStatusCode.BAD_REQUEST, '70004');
+    }
+    return res.status(200).json(rsmg('000000'))
+  } catch (e) {
+    logger.errorWithContext({ error: e, message: 'error POST /api/v1/ipl/cancel...' });
+    return utils.returnErrorFunction(res, 'error POST /api/v1/ipl/cancel...', e);
   }
 }
