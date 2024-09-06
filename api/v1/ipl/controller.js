@@ -115,17 +115,12 @@ exports.checkTagihan = async function (req, res) {
 exports.sendInvoiceBankTransfer = async function (req, res) {
   try {
     let payloadRequest;    
-    const end_time = formats.getCurrentTimeInJakarta(moment().format(), 'YYYY-MM-DD 23:59:00');
-    const start_time = formats.getCurrentTimeInJakarta(moment().format(), 'YYYY-MM-DD HH:mm:ss');
+    const partition = formats.getCurrentTimeInJakarta(moment().format(), 'YYYY');
     const desiredLength = formats.generateRandomValue(10,15);
     let order_id = nanoid(desiredLength);
-    order_id = `${order_id}-${moment(start_time).format('YYYY')}`;
+    order_id = `${order_id}-${partition}`;
 
-    let validuntil = moment(end_time).diff(moment(start_time), 'minutes');
-    validuntil = Math.floor(validuntil);
-    console.log('validuntilvaliduntil', validuntil)
-
-    const bank = req.body.bank; //01:bca 02:mandiri 03:bni 04:bri 05:permata
+    const bank = req.body.bank;
     const gross_amount = req.body.gross_amount;
     
     payloadRequest = {
@@ -134,7 +129,7 @@ exports.sendInvoiceBankTransfer = async function (req, res) {
         gross_amount: gross_amount
       },
       custom_expiry: {
-        expiry_duration: validuntil,
+        expiry_duration: 60,
         unit: 'minute'
       }
     }
@@ -176,7 +171,7 @@ exports.sendInvoiceBankTransfer = async function (req, res) {
     console.log('fullPayloadRequest', JSON.stringify(fullPayloadRequest))
     const ressInvoice = await httpCaller(fullPayloadRequest)
 
-    return res.status(200).json(rsmg('000000'), ressInvoice.data)
+    return res.status(200).json(rsmg('000000', ressInvoice.data))
   } catch (e) {
     logger.errorWithContext({ error: e, message: 'error GET /api/v1/ipl/check-tagihan...' });
     return utils.returnErrorFunction(res, 'error GET /api/v1/ipl/send-invoice...', e);
