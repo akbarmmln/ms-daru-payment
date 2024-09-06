@@ -173,38 +173,41 @@ exports.sendInvoiceBankTransfer = async function (req, res) {
     const ressInvoice = await httpCaller(fullPayloadRequest)
     logger.infoWithContext(`fullResponRequest ${JSON.stringify(ressInvoice.data)}`)
 
-    const tabelInvoicing = paymentInvoicing(partition);
-    let paymentInvoicingTable = {
-      id: uuidv4(),
-      created_dt: moment().format('YYYY-MM-DD HH:mm:ss'),
-      created_by: req.id,
-      modified_dt: moment().format('YYYY-MM-DD HH:mm:ss'),
-      modified_by: req.id,
-      is_deleted: 0,
-      order_id: order_id,
-      account_id: req.id,
-      transaction_id: ressInvoice.data.transaction_id,
-      merchant_id: ressInvoice.data.merchant_id,
-      transaction_time: ressInvoice.data.transaction_time,
-      expiry_time: ressInvoice.data.expiry_time,
-      transaction_status: ressInvoice.data.transaction_status,
-      gross_amount: ressInvoice.data.gross_amount,
-      net_amount: 0,
-      currency: ressInvoice.data.currency,
-      transaction_type: ressInvoice.data.payment_type
+    if (['200', '201', '202'].includes(ressInvoice.data.status_code)) {
+      const tabelInvoicing = paymentInvoicing(partition);
+      let paymentInvoicingTable = {
+        id: uuidv4(),
+        created_dt: moment().format('YYYY-MM-DD HH:mm:ss'),
+        created_by: req.id,
+        modified_dt: moment().format('YYYY-MM-DD HH:mm:ss'),
+        modified_by: req.id,
+        is_deleted: 0,
+        order_id: order_id,
+        account_id: req.id,
+        transaction_id: ressInvoice.data.transaction_id,
+        merchant_id: ressInvoice.data.merchant_id,
+        transaction_time: ressInvoice.data.transaction_time,
+        expiry_time: ressInvoice.data.expiry_time,
+        transaction_status: ressInvoice.data.transaction_status,
+        gross_amount: ressInvoice.data.gross_amount,
+        net_amount: 0,
+        currency: ressInvoice.data.currency,
+        transaction_type: ressInvoice.data.payment_type
+      }
+  
+      if (ressInvoice.data.payment_type === 'bank_transfer') {
+        paymentInvoicingTable.va_numbers = ressInvoice.data.va_numbers[0].va_number
+        paymentInvoicingTable.store = ressInvoice.data.va_numbers[0].bank
+      } else if (ressInvoice.data.payment_type === 'echannel') {
+        paymentInvoicingTable.va_numbers = ressInvoice.data.bill_key
+        paymentInvoicingTable.store = 'mandiri'
+      }
+      await tabelInvoicing.create(paymentInvoicingTable);
+      res.header('access-token', req['access-token']);
+      return res.status(200).json(rsmg('000000'))    
+    } else {
+      throw new ApiErrorMsg(HttpStatusCode.BAD_REQUEST, '70004');
     }
-
-    if (ressInvoice.data.payment_type === 'bank_transfer') {
-      paymentInvoicingTable.va_numbers = ressInvoice.data.va_numbers[0].va_number
-      paymentInvoicingTable.store = ressInvoice.data.va_numbers[0].bank
-    } else if (ressInvoice.data.payment_type === 'echannel') {
-      paymentInvoicingTable.va_numbers = ressInvoice.data.bill_key
-      paymentInvoicingTable.store = 'mandiri'
-    }
-    await tabelInvoicing.create(paymentInvoicingTable);
-
-    res.header('access-token', req['access-token']);
-    return res.status(200).json(rsmg('000000', ressInvoice.data))
   } catch (e) {
     logger.errorWithContext({ error: e, message: 'error GET /api/v1/ipl/check-tagihan...' });
     return utils.returnErrorFunction(res, 'error GET /api/v1/ipl/send-invoice...', e);
