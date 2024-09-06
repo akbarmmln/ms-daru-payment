@@ -204,7 +204,7 @@ exports.sendInvoiceBankTransfer = async function (req, res) {
       }
       await tabelInvoicing.create(paymentInvoicingTable);
       res.header('access-token', req['access-token']);
-      return res.status(200).json(rsmg('000000'))    
+      return res.status(200).json(rsmg('000000', ressInvoice.data))
     } else {
       throw new ApiErrorMsg(HttpStatusCode.BAD_REQUEST, '70004');
     }
