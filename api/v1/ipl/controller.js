@@ -119,15 +119,13 @@ exports.sendInvoiceBankTransfer = async function (req, res) {
   try {
     let payloadRequest;
     const fullDate = moment().format('YYYY-MM-DD HH:mm:ss.SSS')
-    const partitionIPL = moment().format('YYYY')
-    const partitionUsrTrx = moment().format('YYYYMM')
+    const partitionIPL = moment(fullDate).format('YYYY')
     const desiredLength = formats.generateRandomValue(10,15);
     const order_id = nanoid(desiredLength);
     const order_id_ipl = `${order_id}-${partitionIPL}`;
     const order_id_usr_trx = `${order_id}-${partitionUsrTrx}`;
 
     const type = 'ipl'
-    const jobPartition = parseInt(crc16(uuidv4()).toString());
     const bank = req.body.bank;
     const net_amount = req.body.net_amount;
     const gross_amount = req.body.gross_amount;
@@ -213,48 +211,7 @@ exports.sendInvoiceBankTransfer = async function (req, res) {
       }
       await tabelInvoicing.create(paymentInvoicingTable);
 
-      const tabelUserTransaction = adrUserTransaction(partitionUsrTrx)
-      const payloadUserTransaction = {
-        net_amount: net_amount,
-        gross_amount: gross_amount,
-        order_id: order_id_ipl,
-        details: details
-      }
-  
-      const state = {
-        type: type,
-        tracking: [
-          {
-            title: 'Nomor VA dibuat',
-            status: '1'
-          },
-          {
-            title: 'Respon dari bank penerima',
-            status: '2'
-          },
-          {
-            title: 'Uang berhasil dikirim ke layanan',
-            status: '2'
-          }
-        ]
-      }
-      
-      await tabelUserTransaction.create({
-        id: uuidv4(),
-        created_dt: moment().format('YYYY-MM-DD HH:mm:ss'),
-        created_by: req.id,
-        modified_dt: moment().format('YYYY-MM-DD HH:mm:ss'),
-        modified_by: req.id,
-        is_deleted: 0,
-        request_id: order_id_usr_trx,
-        account_id: req.id,
-        amount: gross_amount,
-        transaction_type: type,
-        state: JSON.stringify(state),
-        payload: JSON.stringify(payloadUserTransaction),
-        status: 2,
-        partition: jobPartition % parseInt(8),
-      })
+      await saveUsertTransaction(req.id, net_amount, gross_amount, order_id_ipl, details, type, 'bank_transfer');
 
       res.header('access-token', req['access-token']);
       return res.status(200).json(rsmg('000000', ressInvoice.data))
@@ -317,5 +274,63 @@ exports.cancelInvoice = async function (req, res) {
   } catch (e) {
     logger.errorWithContext({ error: e, message: 'error POST /api/v1/ipl/cancel...' });
     return utils.returnErrorFunction(res, 'error POST /api/v1/ipl/cancel...', e);
+  }
+}
+
+const saveUsertTransaction = async function (account_id, net_amount, gross_amount, order_id_ipl, details, type, payment_method) {
+  try {
+    const jobPartition = parseInt(crc16(uuidv4()).toString());
+    const partitionUsrTrx = moment().format('YYYYMM')
+    const desiredLength = formats.generateRandomValue(10,15);
+    const order_id = nanoid(desiredLength);
+    const order_id_usr_trx = `${order_id}-${partitionUsrTrx}`;
+
+    const tabelUserTransaction = adrUserTransaction(partitionUsrTrx)
+    const payloadUserTransaction = {
+      net_amount: net_amount,
+      gross_amount: gross_amount,
+      order_id: order_id_ipl,
+      details: details
+    }
+    let state = null;
+    if (payment_method === 'bank transfer') {
+      state = {
+        type: type,
+        tracking: [
+          {
+            title: 'Nomor VA dibuat',
+            status: '1'
+          },
+          {
+            title: 'Respon dari bank penerima',
+            status: '2'
+          },
+          {
+            title: 'Uang berhasil dikirim ke layanan',
+            status: '2'
+          }
+        ]
+      }
+    }
+    
+    await tabelUserTransaction.create({
+      id: uuidv4(),
+      created_dt: moment().format('YYYY-MM-DD HH:mm:ss.SSS'),
+      created_by: account_id,
+      modified_dt: moment().format('YYYY-MM-DD HH:mm:ss.SSS'),
+      modified_by: account_id,
+      is_deleted: 0,
+      request_id: order_id_usr_trx,
+      account_id: account_id,
+      amount: gross_amount,
+      transaction_type: type,
+      state: JSON.stringify(state),
+      payload: JSON.stringify(payloadUserTransaction),
+      status: 2,
+      partition: jobPartition % parseInt(8),
+    })
+  } catch (e) {
+    logger.errorWithContext({ error: e, message: 'error to do save user transaction' })
+    throw new ApiErrorMsg(HttpStatusCode.BAD_REQUEST, '10000');
   }
 }
