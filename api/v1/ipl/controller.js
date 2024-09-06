@@ -14,6 +14,8 @@ const httpCaller = require('../../../config/httpCaller');
 const adrPembayaranIPL = require('../../../model/adr_pembayaran_ipl');
 const paymentInvoicing = require('../../../model/adr_payment_invoicing');
 const nanoid = require('nanoid-esm')
+const adrUserTransaction = require('../../../model/adr_user_transaction');
+const { crc16 } = require('crc');
 
 exports.initIPL = async function (req, res) {
   try {
@@ -121,9 +123,13 @@ exports.sendInvoiceBankTransfer = async function (req, res) {
     let order_id = nanoid(desiredLength);
     order_id = `${order_id}-${partition}`;
 
+    const type = 'ipl'
+    const jobPartition = parseInt(crc16(uuidv4()).toString());
     const bank = req.body.bank;
+    const net_amount = req.body.net_amount;
     const gross_amount = req.body.gross_amount;
-    
+    const details= req.body.details;
+
     payloadRequest = {
       transaction_details: {
         order_id: order_id,
@@ -203,6 +209,51 @@ exports.sendInvoiceBankTransfer = async function (req, res) {
         paymentInvoicingTable.store = 'mandiri'
       }
       await tabelInvoicing.create(paymentInvoicingTable);
+
+      const tabelUserTransaction = adrUserTransaction(partition)
+      const payloadUserTransaction = {
+        net_amount: net_amount,
+        gross_amount: gross_amount,
+        partition: partition,
+        order_id: order_id,
+        details: details
+      }
+  
+      const state = {
+        type: type,
+        tracking: [
+          {
+            title: 'Nomor VA dibuat',
+            status: '1'
+          },
+          {
+            title: 'Respon dari bank penerima',
+            status: '2'
+          },
+          {
+            title: 'Uang berhasil dikirim ke layanan',
+            status: '2'
+          }
+        ]
+      }
+      
+      await tabelUserTransaction.create({
+        id: uuidv4(),
+        created_dt: moment().format('YYYY-MM-DD HH:mm:ss'),
+        created_by: req.id,
+        modified_dt: moment().format('YYYY-MM-DD HH:mm:ss'),
+        modified_by: req.id,
+        is_deleted: 0,
+        request_id: order_id,
+        account_id: req.id,
+        amount: gross_amount,
+        transaction_type: type,
+        state: JSON.stringify(state),
+        payload: JSON.stringify(payloadUserTransaction),
+        status: 2,
+        partition: jobPartition % parseInt(8),
+      })
+
       res.header('access-token', req['access-token']);
       return res.status(200).json(rsmg('000000', ressInvoice.data))
     } else {
