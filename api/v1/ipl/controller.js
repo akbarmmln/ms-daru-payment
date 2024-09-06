@@ -126,7 +126,6 @@ exports.sendInvoiceBankTransfer = async function (req, res) {
     console.log('validuntilvaliduntil', validuntil)
 
     const bank = req.body.bank; //01:bca 02:mandiri 03:bni 04:bri 05:permata
-    const payment_type = req.body.payment_type;
     const gross_amount = req.body.gross_amount;
     
     payloadRequest = {
@@ -153,12 +152,14 @@ exports.sendInvoiceBankTransfer = async function (req, res) {
       payloadRequest.bank_transfer = {
         bank: bankname
       };
-    } else {
+    } else if (bank === '02') {
       payloadRequest.payment_type = 'echannel';
       payloadRequest.echannel = {
         bill_info1 : "Tagihan IPL",
         bill_info2 : "Tagihan IPL"
       }
+    } else {
+      throw new ApiErrorMsg(HttpStatusCode.BAD_REQUEST, '70004');
     }
 
     const usr = process.env.MIDTRANS_USR;
@@ -174,7 +175,7 @@ exports.sendInvoiceBankTransfer = async function (req, res) {
     }
     console.log('fullPayloadRequest', JSON.stringify(fullPayloadRequest))
     const ressInvoice = await httpCaller(fullPayloadRequest)
-    
+
     return res.status(200).json(rsmg('000000'), ressInvoice.data)
   } catch (e) {
     logger.errorWithContext({ error: e, message: 'error GET /api/v1/ipl/check-tagihan...' });
