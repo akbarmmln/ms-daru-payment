@@ -126,7 +126,7 @@ exports.sendInvoiceBankTransfer = async function (req, res) {
     
     payloadRequest = {
       transaction_details: {
-        order_id: order_id,
+        order_id: '5TjnTwnrt2VoVaK-2024',
         gross_amount: gross_amount
       },
       custom_expiry: {
@@ -193,7 +193,7 @@ exports.sendInvoiceBankTransfer = async function (req, res) {
       currency: ressInvoice.data.currency,
       transaction_type: ressInvoice.data.payment_type
     }
-    console.log('paymentInvoicingTable', JSON.stringify(paymentInvoicingTable))
+
     if (ressInvoice.data.payment_type === 'bank_transfer') {
       paymentInvoicingTable.va_numbers = ressInvoice.data.va_numbers[0].va_number
       paymentInvoicingTable.store = ressInvoice.data.va_numbers[0].bank
