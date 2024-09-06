@@ -117,11 +117,13 @@ exports.checkTagihan = async function (req, res) {
 
 exports.sendInvoiceBankTransfer = async function (req, res) {
   try {
-    let payloadRequest;    
-    const partition = formats.getCurrentTimeInJakarta(moment().format(), 'YYYY');
+    let payloadRequest;
+    const fullDate = moment().format('YYYY-MM-DD HH:mm:ss.SSS')
+    const partitionIPL = moment().format('YYYY')
+    const partitionUsrTrx = moment().format('YYYYMM')
     const desiredLength = formats.generateRandomValue(10,15);
     let order_id = nanoid(desiredLength);
-    order_id = `${order_id}-${partition}`;
+    order_id = `${order_id}-${partitionIPL}`;
 
     const type = 'ipl'
     const jobPartition = parseInt(crc16(uuidv4()).toString());
@@ -180,7 +182,7 @@ exports.sendInvoiceBankTransfer = async function (req, res) {
     logger.infoWithContext(`fullResponRequest ${JSON.stringify(ressInvoice.data)}`)
 
     if (['200', '201', '202'].includes(ressInvoice.data.status_code)) {
-      const tabelInvoicing = paymentInvoicing(partition);
+      const tabelInvoicing = paymentInvoicing(partitionIPL);
       let paymentInvoicingTable = {
         id: uuidv4(),
         created_dt: moment().format('YYYY-MM-DD HH:mm:ss'),
@@ -210,11 +212,10 @@ exports.sendInvoiceBankTransfer = async function (req, res) {
       }
       await tabelInvoicing.create(paymentInvoicingTable);
 
-      const tabelUserTransaction = adrUserTransaction(partition)
+      const tabelUserTransaction = adrUserTransaction(partitionUsrTrx)
       const payloadUserTransaction = {
         net_amount: net_amount,
         gross_amount: gross_amount,
-        partition: partition,
         order_id: order_id,
         details: details
       }
