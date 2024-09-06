@@ -122,8 +122,9 @@ exports.sendInvoiceBankTransfer = async function (req, res) {
     const partitionIPL = moment().format('YYYY')
     const partitionUsrTrx = moment().format('YYYYMM')
     const desiredLength = formats.generateRandomValue(10,15);
-    let order_id = nanoid(desiredLength);
-    order_id = `${order_id}-${partitionIPL}`;
+    const order_id = nanoid(desiredLength);
+    const order_id_ipl = `${order_id}-${partitionIPL}`;
+    const order_id_usr_trx = `${order_id}-${partitionUsrTrx}`;
 
     const type = 'ipl'
     const jobPartition = parseInt(crc16(uuidv4()).toString());
@@ -134,7 +135,7 @@ exports.sendInvoiceBankTransfer = async function (req, res) {
 
     payloadRequest = {
       transaction_details: {
-        order_id: order_id,
+        order_id: order_id_ipl,
         gross_amount: gross_amount
       },
       custom_expiry: {
@@ -190,7 +191,7 @@ exports.sendInvoiceBankTransfer = async function (req, res) {
         modified_dt: moment().format('YYYY-MM-DD HH:mm:ss'),
         modified_by: req.id,
         is_deleted: 0,
-        order_id: order_id,
+        order_id: order_id_ipl,
         account_id: req.id,
         transaction_id: ressInvoice.data.transaction_id,
         merchant_id: ressInvoice.data.merchant_id,
@@ -216,7 +217,7 @@ exports.sendInvoiceBankTransfer = async function (req, res) {
       const payloadUserTransaction = {
         net_amount: net_amount,
         gross_amount: gross_amount,
-        order_id: order_id,
+        order_id: order_id_ipl,
         details: details
       }
   
@@ -245,7 +246,7 @@ exports.sendInvoiceBankTransfer = async function (req, res) {
         modified_dt: moment().format('YYYY-MM-DD HH:mm:ss'),
         modified_by: req.id,
         is_deleted: 0,
-        request_id: order_id,
+        request_id: order_id_usr_trx,
         account_id: req.id,
         amount: gross_amount,
         transaction_type: type,
