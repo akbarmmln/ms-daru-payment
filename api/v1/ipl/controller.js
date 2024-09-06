@@ -115,7 +115,7 @@ exports.checkTagihan = async function (req, res) {
 exports.sendInvoiceBankTransfer = async function (req, res) {
   try {
     let payloadRequest;    
-    const end_time = formats.getCurrentTimeInJakarta(moment().format(), 'YYYY-MM-DD 23:30:00');
+    const end_time = formats.getCurrentTimeInJakarta(moment().format(), 'YYYY-MM-DD 23:59:00');
     const start_time = formats.getCurrentTimeInJakarta(moment().format(), 'YYYY-MM-DD HH:mm:ss');
     const desiredLength = formats.generateRandomValue(10,15);
     let order_id = nanoid(desiredLength);
