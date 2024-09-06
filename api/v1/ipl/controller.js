@@ -292,7 +292,7 @@ const saveUsertTransaction = async function (account_id, net_amount, gross_amoun
       details: details
     }
     let state = null;
-    if (payment_method === 'bank transfer') {
+    if (payment_method === 'bank_transfer') {
       state = {
         type: type,
         tracking: [
