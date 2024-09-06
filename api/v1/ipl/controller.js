@@ -185,14 +185,15 @@ exports.sendInvoiceBankTransfer = async function (req, res) {
       account_id: req.id,
       transaction_id: ressInvoice.data.transaction_id,
       merchant_id: ressInvoice.data.merchant_id,
-      transaction_time: moment(ressInvoice.data.transaction_time).format(),
-      expiry_time: moment(ressInvoice.data.expiry_time).format(),
+      transaction_time: ressInvoice.data.transaction_time,
+      expiry_time: ressInvoice.data.expiry_time,
       transaction_status: ressInvoice.data.transaction_status,
       gross_amount: ressInvoice.data.gross_amount,
       net_amount: 0,
       currency: ressInvoice.data.currency,
       transaction_type: ressInvoice.data.payment_type
     }
+    console.log('paymentInvoicingTable', JSON.stringify(paymentInvoicingTable))
     if (ressInvoice.data.payment_type === 'bank_transfer') {
       paymentInvoicingTable.va_numbers = ressInvoice.data.va_numbers[0].va_number
       paymentInvoicingTable.store = ressInvoice.data.va_numbers[0].bank
