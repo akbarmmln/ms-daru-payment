@@ -186,7 +186,7 @@ exports.sendInvoiceBankTransfer = async function (req, res) {
       transaction_id: ressInvoice.data.transaction_id,
       merchant_id: ressInvoice.data.merchant_id,
       transaction_time: formats.getCurrentTimeInJakarta(ressInvoice.data.transaction_time, 'YYYY-MM-DD HH:mm:ss'),
-      expiry_time: formats.generateRandomValue(ressInvoice.data.expiry_time, 'YYYY-MM-DD HH:mm:ss'),
+      expiry_time: formats.getCurrentTimeInJakarta(ressInvoice.data.expiry_time, 'YYYY-MM-DD HH:mm:ss'),
       transaction_status: ressInvoice.data.transaction_status,
       gross_amount: ressInvoice.data.gross_amount,
       net_amount: 0,
