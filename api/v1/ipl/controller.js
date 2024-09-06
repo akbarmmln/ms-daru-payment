@@ -168,9 +168,11 @@ exports.sendInvoiceBankTransfer = async function (req, res) {
       },
       data: payloadRequest
     }
-    console.log('fullPayloadRequest', JSON.stringify(fullPayloadRequest))
+    logger.infoWithContext(`fullPayloadRequest ${JSON.stringify(fullPayloadRequest)}`)
     const ressInvoice = await httpCaller(fullPayloadRequest)
+    logger.infoWithContext(`fullResponRequest ${JSON.stringify(ressInvoice.data)}`)
 
+    res.header('access-token', req['access-token']);
     return res.status(200).json(rsmg('000000', ressInvoice.data))
   } catch (e) {
     logger.errorWithContext({ error: e, message: 'error GET /api/v1/ipl/check-tagihan...' });
