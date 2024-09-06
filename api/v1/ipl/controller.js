@@ -12,6 +12,7 @@ const ApiErrorMsg = require('../../../error/apiErrorMsg')
 const HttpStatusCode = require("../../../error/httpStatusCode");
 const httpCaller = require('../../../config/httpCaller');
 const adrPembayaranIPL = require('../../../model/adr_pembayaran_ipl');
+const paymentInvoicing = require('../../../model/adr_payment_invoicing');
 const nanoid = require('nanoid-esm')
 
 exports.initIPL = async function (req, res) {
@@ -172,6 +173,7 @@ exports.sendInvoiceBankTransfer = async function (req, res) {
     const ressInvoice = await httpCaller(fullPayloadRequest)
     logger.infoWithContext(`fullResponRequest ${JSON.stringify(ressInvoice.data)}`)
 
+    const tabelInvoicing = paymentInvoicing(partition);
     let paymentInvoicingTable = {
       id: uuidv4(),
       created_dt: moment().format('YYYY-MM-DD HH:mm:ss'),
@@ -198,6 +200,8 @@ exports.sendInvoiceBankTransfer = async function (req, res) {
       paymentInvoicingTable.va_numbers = ressInvoice.data.bill_key
       paymentInvoicingTable.store = 'mandiri'
     }
+    await tabelInvoicing.create(paymentInvoicingTable);
+
     res.header('access-token', req['access-token']);
     return res.status(200).json(rsmg('000000', ressInvoice.data))
   } catch (e) {
