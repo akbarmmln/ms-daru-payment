@@ -12,6 +12,7 @@ const ApiErrorMsg = require('../../../error/apiErrorMsg')
 const HttpStatusCode = require("../../../error/httpStatusCode");
 const httpCaller = require('../../../config/httpCaller');
 const adrPembayaranIPL = require('../../../model/adr_pembayaran_ipl');
+const nanoid = require('nanoid-esm')
 
 exports.initIPL = async function (req, res) {
   try {
@@ -74,7 +75,6 @@ exports.checkTagihan = async function (req, res) {
         }
       })
       config = config?.data?.data;
-      console.log('sadasdsadasd ', JSON.stringify(config))
     } catch (e) {
       return res.status(e.response.status).json(e?.response?.data);
     }
@@ -109,5 +109,75 @@ exports.checkTagihan = async function (req, res) {
   } catch (e) {
     logger.errorWithContext({ error: e, message: 'error GET /api/v1/ipl/check-tagihan...' });
     return utils.returnErrorFunction(res, 'error GET /api/v1/ipl/check-tagihan...', e);
+  }
+}
+
+exports.sendInvoiceBankTransfer = async function (req, res) {
+  try {
+    let payloadRequest;    
+    const end_time = formats.getCurrentTimeInJakarta(moment().format(), 'YYYY-MM-DD 23:30:00');
+    const start_time = formats.getCurrentTimeInJakarta(moment().format(), 'YYYY-MM-DD HH:mm:ss');
+    const desiredLength = formats.generateRandomValue(10,15);
+    let order_id = nanoid(desiredLength);
+    order_id = `${order_id}-${moment(start_time).format('YYYY')}`;
+
+    let validuntil = moment(end_time).diff(moment(start_time), 'minutes');
+    validuntil = Math.floor(validuntil);
+    console.log('validuntilvaliduntil', validuntil)
+
+    const bank = req.body.bank; //01:bca 02:mandiri 03:bni 04:bri 05:permata
+    const payment_type = req.body.payment_type;
+    const gross_amount = req.body.gross_amount;
+    
+    payloadRequest = {
+      transaction_details: {
+        order_id: order_id,
+        gross_amount: gross_amount
+      },
+      custom_expiry: {
+        expiry_duration: validuntil,
+        unit: 'minute'
+      }
+    }
+
+    if (['01', '03', '04', '05'].includes(bank)) {
+      const bankMapping = {
+        '01': 'bca',
+        '03': 'bni',
+        '04': 'bri',
+        '05': 'permata'
+      };
+    
+      const bankname = bankMapping[bank];
+      payloadRequest.payment_type = 'bank_transfer';
+      payloadRequest.bank_transfer = {
+        bank: bankname
+      };
+    } else {
+      payloadRequest.payment_type = 'echannel';
+      payloadRequest.echannel = {
+        bill_info1 : "Tagihan IPL",
+        bill_info2 : "Tagihan IPL"
+      }
+    }
+
+    const usr = process.env.MIDTRANS_USR;
+    const pass = process.env.MIDTRANS_PASS;
+    const base64Credentials = btoa(`${usr}:${pass}`);
+    const fullPayloadRequest = {
+      method: 'POST',
+      url: process.env.MIDTRANS_URL + '/charge',
+      headers: {
+        authorization: `Basic ${base64Credentials}`
+      },
+      data: payloadRequest
+    }
+    console.log('fullPayloadRequest', JSON.stringify(fullPayloadRequest))
+    const ressInvoice = await httpCaller(fullPayloadRequest)
+    
+    return res.status(200).json(rsmg('000000'), ressInvoice.data)
+  } catch (e) {
+    logger.errorWithContext({ error: e, message: 'error GET /api/v1/ipl/check-tagihan...' });
+    return utils.returnErrorFunction(res, 'error GET /api/v1/ipl/send-invoice...', e);
   }
 }
