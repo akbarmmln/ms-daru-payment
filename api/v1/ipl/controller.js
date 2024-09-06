@@ -196,7 +196,7 @@ exports.sendInvoiceBankTransfer = async function (req, res) {
         expiry_time: ressInvoice.data.expiry_time,
         transaction_status: ressInvoice.data.transaction_status,
         gross_amount: ressInvoice.data.gross_amount,
-        net_amount: 0,
+        net_amount: net_amount,
         currency: ressInvoice.data.currency,
         transaction_type: ressInvoice.data.payment_type
       }
