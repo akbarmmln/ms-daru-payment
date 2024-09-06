@@ -123,7 +123,6 @@ exports.sendInvoiceBankTransfer = async function (req, res) {
     const desiredLength = formats.generateRandomValue(10,15);
     const order_id = nanoid(desiredLength);
     const order_id_ipl = `${order_id}-${partitionIPL}`;
-    const order_id_usr_trx = `${order_id}-${partitionUsrTrx}`;
 
     const type = 'ipl'
     const bank = req.body.bank;
@@ -280,7 +279,7 @@ exports.cancelInvoice = async function (req, res) {
 const saveUsertTransaction = async function (account_id, net_amount, gross_amount, order_id_ipl, details, type, payment_method) {
   try {
     const jobPartition = parseInt(crc16(uuidv4()).toString());
-    const partitionUsrTrx = moment().format('YYYYMM')
+    const partitionUsrTrx = moment().format('YYYYMM');
     const desiredLength = formats.generateRandomValue(10,15);
     const order_id = nanoid(desiredLength);
     const order_id_usr_trx = `${order_id}-${partitionUsrTrx}`;
