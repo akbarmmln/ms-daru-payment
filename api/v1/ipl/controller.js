@@ -126,7 +126,7 @@ exports.sendInvoiceBankTransfer = async function (req, res) {
     
     payloadRequest = {
       transaction_details: {
-        order_id: '5TjnTwnrt2VoVaK-2024',
+        order_id: order_id,
         gross_amount: gross_amount
       },
       custom_expiry: {
