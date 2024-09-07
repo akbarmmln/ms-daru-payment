@@ -34,7 +34,17 @@ exports.initIPL = async function (req, res) {
       return res.status(e.response.status).json(e?.response?.data);
     }
 
+    const tabelInvoicing = paymentInvoicing(tahun_implementasi);
     const tabelBayarIPL = adrPembayaranIPL(tahun_implementasi);
+
+    const pending = await tabelInvoicing.findOne({
+      raw: true,
+      where: {
+        is_deleted: 0,
+        account_id: id,
+        transaction_status: 'pending'
+      }
+    })
 
     const data = await tabelBayarIPL.findAll({
       raw: true,
@@ -46,7 +56,8 @@ exports.initIPL = async function (req, res) {
     })
     const hasil = {
       tahun_implementasi: tahun_implementasi,
-      dataIPL: data
+      dataIPL: data,
+      iplPending: pending
     }
     res.header('access-token', req['access-token']);
     return res.status(200).json(rsmg('000000', hasil))
