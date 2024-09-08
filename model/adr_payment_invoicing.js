@@ -25,6 +25,7 @@ const paymentInvoicing = (partition) => {
         va_numbers: Sequelize.STRING,
         store: Sequelize.STRING,
         transaction_type: Sequelize.STRING,
+		user_transaction_id: Sequelize.STRING,
 	}, {
 		freezeTableName: true,
 		timestamps: false,

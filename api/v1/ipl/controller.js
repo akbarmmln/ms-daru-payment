@@ -134,6 +134,8 @@ exports.sendInvoiceBankTransfer = async function (req, res) {
     const desiredLength = formats.generateRandomValue(10,15);
     const order_id = nanoid(desiredLength);
     const order_id_ipl = `${order_id}-${partitionIPL}`;
+    const partitionUsrTrx = moment().format('YYYYMM');
+    const order_id_usr_trx = `${order_id}-${partitionUsrTrx}`;
 
     const type = 'ipl'
     const bank = req.body.bank;
@@ -209,7 +211,8 @@ exports.sendInvoiceBankTransfer = async function (req, res) {
         gross_amount: ressInvoice.data.gross_amount,
         net_amount: net_amount,
         currency: ressInvoice.data.currency,
-        transaction_type: ressInvoice.data.payment_type
+        transaction_type: ressInvoice.data.payment_type,
+        user_transaction_id: order_id_usr_trx
       }
   
       if (ressInvoice.data.payment_type === 'bank_transfer') {
@@ -221,7 +224,7 @@ exports.sendInvoiceBankTransfer = async function (req, res) {
       }
       await tabelInvoicing.create(paymentInvoicingTable);
 
-      await saveUsertTransaction(req.id, net_amount, gross_amount, order_id_ipl, details, type, 'bank_transfer');
+      await saveUsertTransaction(order_id_usr_trx, req.id, net_amount, gross_amount, order_id_ipl, details, type, 'bank_transfer');
 
       res.header('access-token', req['access-token']);
       return res.status(200).json(rsmg('000000', ressInvoice.data))
@@ -287,15 +290,14 @@ exports.cancelInvoice = async function (req, res) {
   }
 }
 
-const saveUsertTransaction = async function (account_id, net_amount, gross_amount, order_id_ipl, details, type, payment_method) {
+const saveUsertTransaction = async function (order_id_usr_trx, account_id, net_amount, gross_amount, order_id_ipl, details, type, payment_method) {
   try {
     const jobPartition = parseInt(crc16(uuidv4()).toString());
-    const partitionUsrTrx = moment().format('YYYYMM');
-    const desiredLength = formats.generateRandomValue(10,15);
-    const order_id = nanoid(desiredLength);
-    const order_id_usr_trx = `${order_id}-${partitionUsrTrx}`;
+    const splitId = order_id_usr_trx.split('-');
+    const splitIdLenght = splitId.length
+    const partition = splitId[splitIdLenght - 1]
 
-    const tabelUserTransaction = adrUserTransaction(partitionUsrTrx)
+    const tabelUserTransaction = adrUserTransaction(partition)
     const payloadUserTransaction = {
       net_amount: net_amount,
       gross_amount: gross_amount,
