@@ -60,7 +60,7 @@ exports.initIPL = async function (req, res) {
         }
       })
       detailsPending = data;
-      detailsPending?.expiry_time = moment(detailsPending.expiry_time).format('YYYY-MM-DD HH:mm:ss')
+      detailsPending.expiry_time = moment(detailsPending.expiry_time).format('YYYY-MM-DD HH:mm:ss')
     }
 
     const data = await tabelBayarIPL.findAll({
