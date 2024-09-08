@@ -47,6 +47,7 @@ const sequelize = new Sequelize(settings.dbname, settings.username, settings.pas
   port: settings.port,
   dialect: 'mysql',
   dialectOptions: {
+    timezone: '+07:00',
     ssl: {
       require: true,
       rejectUnauthorized: true,

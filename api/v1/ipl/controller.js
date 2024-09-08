@@ -21,7 +21,7 @@ exports.initIPL = async function (req, res) {
   try {
     const id = req.id;
     const tahun_implementasi = req.body.tahun_implementasi;
-    let detailsPending;
+    let iplPending, detailsPending;
 
     try {
       await httpCaller({
@@ -59,8 +59,9 @@ exports.initIPL = async function (req, res) {
           request_id: user_transaction_id
         }
       })
+      iplPending = pending;
       detailsPending = data;
-      detailsPending.expiry_time = moment(detailsPending.expiry_time).format('YYYY-MM-DD HH:mm:ss')
+      iplPending.expiry_time = moment(iplPending.expiry_time).format('YYYY-MM-DD HH:mm:ss')
     }
 
     const data = await tabelBayarIPL.findAll({
