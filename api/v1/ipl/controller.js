@@ -365,3 +365,88 @@ const saveUsertTransaction = async function (order_id_usr_trx, account_id, net_a
     throw new ApiErrorMsg(HttpStatusCode.BAD_REQUEST, '10000');
   }
 }
+
+exports.detailInvoice = async function(req, res) {
+  try{
+    const order_id = req.params.orderid;
+    const splitId = order_id.split('-');
+    const splitIdLenght = splitId.length
+    const partition = splitId[splitIdLenght - 1]
+
+    const tabelInvoicing = paymentInvoicing(partition);
+    const data = await tabelInvoicing.findOne({
+      raw: true,
+      where: {
+        order_id: order_id
+      }
+    })
+    if (!data) {
+      throw new ApiErrorMsg(HttpStatusCode.BAD_REQUEST, '70003');
+    }
+
+    const user_transaction_id = data.user_transaction_id;
+    const splitIdTrx = user_transaction_id.split('-');
+    const splitIdTrxLenght = splitIdTrx.length
+    const partitionTrx = splitId[splitIdTrxLenght - 1]
+    const tabelUserTransaction = adrUserTransaction(partitionTrx)
+
+    const dataTrx = await tabelUserTransaction.findOne({
+      raw: true,
+      where: {
+        request_id: user_transaction_id
+      }
+    })
+    if (!dataTrx) {
+      throw new ApiErrorMsg(HttpStatusCode.BAD_REQUEST, '70003');
+    }
+
+    const usr = process.env.MIDTRANS_USR;
+    const pass = process.env.MIDTRANS_PASS;
+    const base64Credentials = btoa(`${usr}:${pass}`);
+
+    const fullPayloadRequest = {
+      method: 'GET',
+      url: process.env.MIDTRANS_URL + `/${order_id}/b2b/status`,
+      headers: {
+        authorization: `Basic ${base64Credentials}`
+      }
+    }
+    logger.infoWithContext(`fullPayloadRequest ${JSON.stringify(fullPayloadRequest)}`)
+    const ressInvoice = await httpCaller(fullPayloadRequest)
+    logger.infoWithContext(`fullResponRequest ${JSON.stringify(ressInvoice.data)}`)
+
+    const order_id_respon = ressInvoice.data?.order_id;
+    if (order_id) {
+      let statenow;
+      if (ressInvoice.data?.transaction_status == 'expire') {
+        statenow = 4
+      } else if (ressInvoice.data?.transaction_status == 'cancel') {
+        statenow = 3
+      }
+
+      if (dataTrx.status != statenow) {
+        await tabelInvoicing.update({
+          transaction_status: ressInvoice.data?.transaction_status
+        }, {
+          where: {
+            order_id: order_id_respon
+          }
+        })
+
+        await tabelUserTransaction.update({
+          status: statenow
+        }, {
+          where: {
+            request_id: user_transaction_id
+          }
+        })  
+      }
+    }
+    
+    res.header('access-token', req['access-token']);
+    return res.status(200).json(rsmg('000000'))
+  }catch(e){
+    logger.errorWithContext({ error: e, message: 'error GET /api/v1/ipl/detail/invoice/:orderid...' });
+    return utils.returnErrorFunction(res, 'error GET /api/v1/ipl/detail/invoice/:orderid...', e);
+  }
+}

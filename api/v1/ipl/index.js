@@ -8,6 +8,8 @@ router.post('/check-tagihan', utils.verifyTokenMs, controller.checkTagihan);
 
 router.post('/send-invoice/bank-transfer', utils.verifyTokenMs, controller.sendInvoiceBankTransfer);
 
+router.get('/detail/invoice/:orderid', utils.verifyTokenMs, controller.detailInvoice);
+
 router.post('/cancel', utils.verifyTokenMs, controller.cancelInvoice);
 
 module.exports = router;
