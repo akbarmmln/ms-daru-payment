@@ -21,6 +21,7 @@ exports.initIPL = async function (req, res) {
   try {
     const id = req.id;
     const tahun_implementasi = req.body.tahun_implementasi;
+    let detailsPending;
 
     try {
       await httpCaller({
@@ -45,6 +46,21 @@ exports.initIPL = async function (req, res) {
         transaction_status: 'pending'
       }
     })
+    if (pending) {
+      const user_transaction_id = pending.user_transaction_id;
+      const splitId = user_transaction_id.split('-');
+      const splitIdLenght = splitId.length;
+      const partition = splitId[splitIdLenght - 1];
+
+      const tabelUserTransaction = adrUserTransaction(partition)
+      const data = await tabelUserTransaction.findOne({
+        raw: true,
+        where: {
+          request_id: user_transaction_id
+        }
+      })
+      detailsPending = data;
+    }
 
     const data = await tabelBayarIPL.findAll({
       raw: true,
@@ -57,7 +73,8 @@ exports.initIPL = async function (req, res) {
     const hasil = {
       tahun_implementasi: tahun_implementasi,
       dataIPL: data,
-      iplPending: pending
+      iplPending: pending,
+      detailsPending: detailsPending
     }
     res.header('access-token', req['access-token']);
     return res.status(200).json(rsmg('000000', hasil))
