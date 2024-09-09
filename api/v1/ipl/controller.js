@@ -275,6 +275,22 @@ exports.cancelInvoice = async function (req, res) {
       throw new ApiErrorMsg(HttpStatusCode.BAD_REQUEST, '70003');
     }
 
+    const user_transaction_id = data.user_transaction_id;
+    const splitIdTrx = user_transaction_id.split('-');
+    const splitIdTrxLenght = splitIdTrx.length
+    const partitionTrx = splitId[splitIdTrxLenght - 1]
+    const tabelUserTransaction = adrUserTransaction(partitionTrx)
+
+    const dataTrx = await tabelUserTransaction.findOne({
+      raw: true,
+      where: {
+        request_id: user_transaction_id
+      }
+    })
+    if (!dataTrx) {
+      throw new ApiErrorMsg(HttpStatusCode.BAD_REQUEST, '70003');
+    }
+
     const usr = process.env.MIDTRANS_USR;
     const pass = process.env.MIDTRANS_PASS;
     const base64Credentials = btoa(`${usr}:${pass}`);
@@ -289,19 +305,22 @@ exports.cancelInvoice = async function (req, res) {
     const ressInvoice = await httpCaller(fullPayloadRequest)
     logger.infoWithContext(`fullResponRequest ${JSON.stringify(ressInvoice.data)}`)
 
-    if (['200', '201', '202'].includes(ressInvoice.data.status_code)) {
-      await tabelInvoicing.update({
-        modified_dt: moment().format('YYYY-MM-DD HH:mm:ss'),
-        modified_by: req.id,
-        transaction_status: ressInvoice.data.transaction_status
-      }, {
-        where: {
-          id: data.id
-        }
-      })
-    } else {
-      throw new ApiErrorMsg(HttpStatusCode.BAD_REQUEST, '70004');
-    }
+    await tabelInvoicing.update({
+      transaction_status: 'cancel'
+    }, {
+      where: {
+        order_id: order_id
+      }
+    })
+
+    await tabelUserTransaction.update({
+      status: 3
+    }, {
+      where: {
+        request_id: user_transaction_id
+      }
+    })
+
     return res.status(200).json(rsmg('000000'))
   } catch (e) {
     logger.errorWithContext({ error: e, message: 'error POST /api/v1/ipl/cancel...' });
@@ -439,10 +458,10 @@ exports.detailInvoice = async function(req, res) {
           where: {
             request_id: user_transaction_id
           }
-        })  
+        })
       }
     }
-    
+
     res.header('access-token', req['access-token']);
     return res.status(200).json(rsmg('000000'))
   }catch(e){
