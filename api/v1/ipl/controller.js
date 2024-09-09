@@ -215,7 +215,7 @@ exports.sendInvoiceBankTransfer = async function (req, res) {
       }
     }
 
-    if (['01', '03', '04', '05'].includes(bank)) {
+    if (['01', '03', '04'].includes(bank)) {
       const bankMapping = {
         '01': 'bca',
         '03': 'bni',
@@ -275,7 +275,10 @@ exports.sendInvoiceBankTransfer = async function (req, res) {
         user_transaction_id: order_id_usr_trx
       }
   
-      if (ressInvoice.data.payment_type === 'bank_transfer') {
+      if (ressInvoice.data.payment_type === 'bank_transfer' && bank === '05') {
+        paymentInvoicingTable.va_numbers = ressInvoice.data.permata_va_number
+        paymentInvoicingTable.store = 'permata'
+      } else if (ressInvoice.data.payment_type === 'bank_transfer') {
         paymentInvoicingTable.va_numbers = ressInvoice.data.va_numbers[0].va_number
         paymentInvoicingTable.store = ressInvoice.data.va_numbers[0].bank
       } else if (ressInvoice.data.payment_type === 'echannel') {
