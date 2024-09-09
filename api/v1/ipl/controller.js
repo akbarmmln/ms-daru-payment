@@ -176,6 +176,20 @@ exports.sendInvoiceBankTransfer = async function (req, res) {
       return res.status(e.response.status).json(e?.response?.data);
     }
 
+    const tabelInvoicing = paymentInvoicing(partitionIPL);
+
+    const cekPending = await tabelInvoicing.findOne({
+      raw: true,
+      where: {
+        is_deleted: 0,
+        account_id: req.id,
+        transaction_status: 'pending'
+      }
+    })
+    if (cekPending) {
+      throw new ApiErrorMsg(HttpStatusCode.BAD_REQUEST, '70010');
+    }
+
     payloadRequest = {
       transaction_details: {
         order_id: order_id_ipl,
@@ -226,7 +240,6 @@ exports.sendInvoiceBankTransfer = async function (req, res) {
     logger.infoWithContext(`fullResponRequest ${JSON.stringify(ressInvoice.data)}`)
 
     if (['200', '201', '202'].includes(ressInvoice.data.status_code)) {
-      const tabelInvoicing = paymentInvoicing(partitionIPL);
       let paymentInvoicingTable = {
         id: uuidv4(),
         created_dt: moment().format('YYYY-MM-DD HH:mm:ss'),
