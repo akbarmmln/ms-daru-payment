@@ -215,7 +215,7 @@ exports.sendInvoiceBankTransfer = async function (req, res) {
       }
     }
 
-    if (['01', '03', '04'].includes(bank)) {
+    if (['01', '03', '04', '05'].includes(bank)) {
       const bankMapping = {
         '01': 'bca',
         '03': 'bni',
