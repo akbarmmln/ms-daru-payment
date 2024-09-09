@@ -157,10 +157,24 @@ exports.sendInvoiceBankTransfer = async function (req, res) {
     const order_id_usr_trx = `${order_id}-${partitionUsrTrx}`;
 
     const type = 'ipl'
+    const code_trx = req.body.code_trx;
     const bank = req.body.bank;
     const net_amount = req.body.net_amount;
     const gross_amount = req.body.gross_amount;
     const details= req.body.details;
+
+    try {
+      await httpCaller({
+        method: 'POST',
+        url: process.env.MS_AUTH_V1_URL + '/auth/verify-code-trx',
+        data: {
+          type: type,
+          code: code_trx
+        }
+      })  
+    } catch (e) {
+      return res.status(e.response.status).json(e?.response?.data);
+    }
 
     payloadRequest = {
       transaction_details: {
