@@ -425,7 +425,7 @@ exports.detailInvoice = async function(req, res) {
 
     const fullPayloadRequest = {
       method: 'GET',
-      url: process.env.MIDTRANS_URL + `/${order_id}/b2b/status`,
+      url: process.env.MIDTRANS_URL + `/${order_id}/status`,
       headers: {
         authorization: `Basic ${base64Credentials}`
       }
