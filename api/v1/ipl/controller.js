@@ -406,7 +406,7 @@ exports.detailInvoice = async function(req, res) {
     const user_transaction_id = data.user_transaction_id;
     const splitIdTrx = user_transaction_id.split('-');
     const splitIdTrxLenght = splitIdTrx.length
-    const partitionTrx = splitId[splitIdTrxLenght - 1]
+    const partitionTrx = splitIdTrx[splitIdTrxLenght - 1]
     const tabelUserTransaction = adrUserTransaction(partitionTrx)
 
     const dataTrx = await tabelUserTransaction.findOne({
