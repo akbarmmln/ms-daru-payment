@@ -112,6 +112,20 @@ exports.checkTagihan = async function (req, res) {
       return res.status(e.response.status).json(e?.response?.data);
     }
 
+    const tabelInvoicing = paymentInvoicing(tahun_implementasi);
+
+    const cekPending = await tabelInvoicing.findOne({
+      raw: true,
+      where: {
+        is_deleted: 0,
+        account_id: id,
+        transaction_status: 'pending'
+      }
+    })
+    if (cekPending) {
+      throw new ApiErrorMsg(HttpStatusCode.BAD_REQUEST, '70010');
+    }
+
     for (let i = 0; i < bulan.length; i++) {
       let props = {
         bulan: formats.convertToLiteralMonth(bulan[i]),
