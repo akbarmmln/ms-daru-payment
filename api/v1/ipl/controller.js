@@ -168,7 +168,7 @@ exports.sendInvoiceBankTransfer = async function (req, res) {
         method: 'POST',
         url: process.env.MS_AUTH_V1_URL + '/auth/verify-code-trx',
         data: {
-          type: type,
+          type: 'bayar-ipl',
           code: code_trx
         }
       })  
