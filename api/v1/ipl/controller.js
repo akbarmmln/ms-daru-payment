@@ -158,6 +158,126 @@ exports.checkTagihan = async function (req, res) {
   }
 }
 
+exports.sendInvoiceQR = async function(req, res){
+  try{
+    let payloadRequest;
+    const fullDate = moment().format('YYYY-MM-DD HH:mm:ss.SSS')
+    const partitionIPL = moment(fullDate).format('YYYY')
+    const desiredLength = formats.generateRandomValue(10,15);
+    const order_id = nanoid(desiredLength);
+    const order_id_ipl = `${order_id}-${partitionIPL}`;
+    const partitionUsrTrx = moment().format('YYYYMM');
+    const order_id_usr_trx = `${order_id}-${partitionUsrTrx}`;
+
+    const type = 'ipl'
+    const code_trx = req.body.code_trx;
+    const bank = req.body.bank;
+    const net_amount = req.body.net_amount;
+    const gross_amount = req.body.gross_amount;
+    const details= req.body.details;
+
+    try {
+      await httpCaller({
+        method: 'POST',
+        url: process.env.MS_AUTH_V1_URL + '/auth/verify-code-trx',
+        data: {
+          type: 'bayar-ipl',
+          code: code_trx
+        }
+      })  
+    } catch (e) {
+      return res.status(e.response.status).json(e?.response?.data);
+    }
+
+    const tabelInvoicing = paymentInvoicing(partitionIPL);
+
+    const cekPending = await tabelInvoicing.findOne({
+      raw: true,
+      where: {
+        is_deleted: 0,
+        account_id: req.id,
+        transaction_status: 'pending'
+      }
+    })
+    if (cekPending) {
+      throw new ApiErrorMsg(HttpStatusCode.BAD_REQUEST, '70010');
+    }
+
+    payloadRequest = {
+      payment_type: 'qris',
+      transaction_details: {
+        order_id: order_id_ipl,
+        gross_amount: gross_amount
+      },
+      qris: {
+        acquirer: 'gopay'
+      },
+      custom_expiry: {
+        expiry_duration: 60,
+        unit: 'minute'
+      }
+    }
+
+    if (bank !== '06') { 
+      throw new ApiErrorMsg(HttpStatusCode.BAD_REQUEST, '70004');
+    }
+
+    const usr = process.env.MIDTRANS_USR;
+    const pass = process.env.MIDTRANS_PASS;
+    const base64Credentials = btoa(`${usr}:${pass}`);
+    const fullPayloadRequest = {
+      method: 'POST',
+      url: process.env.MIDTRANS_URL + '/charge',
+      headers: {
+        authorization: `Basic ${base64Credentials}`
+      },
+      data: payloadRequest
+    }
+
+    logger.infoWithContext(`fullPayloadRequest ${JSON.stringify(fullPayloadRequest)}`)
+    const ressInvoice = await httpCaller(fullPayloadRequest)
+    logger.infoWithContext(`fullResponRequest ${JSON.stringify(ressInvoice.data)}`)
+
+    if (['200', '201', '202'].includes(ressInvoice.data.status_code)) {
+      let paymentInvoicingTable = {
+        id: uuidv4(),
+        created_dt: moment().format('YYYY-MM-DD HH:mm:ss'),
+        created_by: req.id,
+        modified_dt: moment().format('YYYY-MM-DD HH:mm:ss'),
+        modified_by: req.id,
+        is_deleted: 0,
+        order_id: order_id_ipl,
+        account_id: req.id,
+        transaction_id: ressInvoice.data.transaction_id,
+        merchant_id: ressInvoice.data.merchant_id,
+        transaction_time: ressInvoice.data.transaction_time,
+        expiry_time: ressInvoice.data.expiry_time,
+        transaction_status: ressInvoice.data.transaction_status,
+        gross_amount: ressInvoice.data.gross_amount,
+        net_amount: net_amount,
+        currency: ressInvoice.data.currency,
+        transaction_type: ressInvoice.data.payment_type,
+        user_transaction_id: order_id_usr_trx,
+        store: `acquirer-${ressInvoice.data.acquirer}`,
+        qr_string: ressInvoice.data.qr_string,
+        qr_url: ressInvoice.data.actions[0].url,
+      }
+
+      await tabelInvoicing.create(paymentInvoicingTable);
+
+      await saveUsertTransaction(order_id_usr_trx, req.id, net_amount, gross_amount, order_id_ipl, details, type, 'qris');
+
+      res.header('access-token', req['access-token']);
+      return res.status(200).json(rsmg('000000', paymentInvoicingTable))
+    } else {
+      throw new ApiErrorMsg(HttpStatusCode.BAD_REQUEST, '70004');
+    }
+  }catch(e){
+    logger.errorWithContext({ error: e, message: 'error POST /api/v1/ipl/send-invoice/qr...' });
+    return utils.returnErrorFunction(res, 'error POST /api/v1/ipl/send-invoice/qr...', e);
+  }
+}
+
 exports.sendInvoiceBankTransfer = async function (req, res) {
   try {
     let payloadRequest;
@@ -404,6 +524,8 @@ const saveUsertTransaction = async function (order_id_usr_trx, account_id, net_a
           }
         ]
       }
+    } else if (payment_method === 'qris') {
+      state = {}
     }
     
     await tabelUserTransaction.create({

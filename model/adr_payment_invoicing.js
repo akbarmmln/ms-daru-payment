@@ -26,6 +26,8 @@ const paymentInvoicing = (partition) => {
         store: Sequelize.STRING,
         transaction_type: Sequelize.STRING,
 		user_transaction_id: Sequelize.STRING,
+		qr_string: Sequelize.STRING,
+		qr_url: Sequelize.STRING,
 	}, {
 		freezeTableName: true,
 		timestamps: false,
