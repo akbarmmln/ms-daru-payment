@@ -637,9 +637,67 @@ exports.detailInvoice = async function(req, res) {
 
 exports.paymentNotif = async function (req, res) {
   try {
-    const order_id = req.body.order_id;
     logger.infoWithContext(`payload received for ipl paymentNotif, ${JSON.stringify(req.body)}`)
 
+    const order_id = req.body.order_id;
+    const transaction_status = req.body.transaction_status;
+    const payment_type = req.body.payment_type;
+
+    if (transaction_status !== 'pending') {
+      const splitOrderID = order_id.split('-');
+      const splitOrderIDLength = splitOrderID.length;
+      const partitionOrderID = splitId[splitOrderIDLength - 1];
+  
+      const tabelInvoicing = paymentInvoicing(partitionOrderID);
+      const invoice = await tabelInvoicing.findOne({
+        raw: true,
+        where: {
+          order_id: order_id
+        }
+      })
+
+      if (invoice) {
+        const user_transaction_id = invoice.user_transaction_id;
+        const splitIdTrx = user_transaction_id.split('-');
+        const splitIdTrxLenght = splitIdTrx.length
+        const partitionTrx = splitIdTrx[splitIdTrxLenght - 1]
+        const tabelUserTransaction = adrUserTransaction(partitionTrx)
+    
+        const dataTrx = await tabelUserTransaction.findOne({
+          raw: true,
+          where: {
+            request_id: user_transaction_id
+          }
+        })
+    
+        if (dataTrx) {
+          let tracking = dataTrx.tracking;
+
+          if (['capture', 'settlement'].includes(bank)) {
+            tracking.tracking[1].status = "1";
+          } else if (['deny', 'failure'].includes(bank)) {
+            tracking.tracking[1].status = "0";
+          }
+
+          await tabelInvoicing.update({
+            transaction_status: transaction_status
+          }, {
+            where: {
+              id: invoice.id
+            }
+          })
+
+          await tabelUserTransaction.update({
+            status: 1,
+            state: JSON.stringify(tracking)
+          }, {
+            where: {
+              id: dataTrx.id
+            }
+          })
+        }
+      }
+    }
     return res.status(200).json(rsmg('000000', req.body))
   } catch (e) {
     logger.errorWithContext({ error: e, message: 'error POST /api/v1/ipl/payment/notif...' });
