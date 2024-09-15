@@ -646,7 +646,7 @@ exports.paymentNotif = async function (req, res) {
     if (transaction_status !== 'pending') {
       const splitOrderID = order_id.split('-');
       const splitOrderIDLength = splitOrderID.length;
-      const partitionOrderID = splitId[splitOrderIDLength - 1];
+      const partitionOrderID = splitOrderID[splitOrderIDLength - 1];
   
       const tabelInvoicing = paymentInvoicing(partitionOrderID);
       const invoice = await tabelInvoicing.findOne({
