@@ -91,11 +91,8 @@ exports.checkTagihan = async function (req, res) {
     const id = req.id;
     const bulan = req.body.bulan;
     const tahun_implementasi = req.body.tahun_implementasi;
-
     let hasil = [];
 
-    console.log('payload incoming request ', JSON.stringify(req.body))
-    
     if (!Array.isArray(bulan)) {
       throw new ApiErrorMsg(HttpStatusCode.BAD_REQUEST, '70009');
     }
