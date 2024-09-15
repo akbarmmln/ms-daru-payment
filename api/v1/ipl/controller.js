@@ -634,3 +634,15 @@ exports.detailInvoice = async function(req, res) {
     return utils.returnErrorFunction(res, 'error GET /api/v1/ipl/detail/invoice/:orderid...', e);
   }
 }
+
+exports.paymentNotif = async function (req, res) {
+  try {
+    const order_id = req.body.order_id;
+    logger.infoWithContext(`payload received for ipl paymentNotif, ${JSON.stringify(req.body)}`)
+
+    return res.status(200).json(rsmg('000000', req.body))
+  } catch (e) {
+    logger.errorWithContext({ error: e, message: 'error POST /api/v1/ipl/payment/notif...' });
+    return utils.returnErrorFunction(res, 'error POST /api/v1/ipl/payment/notif...', e);
+  }
+}

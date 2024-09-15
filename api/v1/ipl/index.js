@@ -14,4 +14,6 @@ router.get('/detail/invoice/:orderid', utils.verifyTokenMs, controller.detailInv
 
 router.post('/cancel', utils.verifyTokenMs, controller.cancelInvoice);
 
+router.post('/payment/notif', utils.verifyTokenMs, controller.paymentNotif);
+
 module.exports = router;
