@@ -671,12 +671,11 @@ exports.paymentNotif = async function (req, res) {
         })
     
         if (dataTrx) {
-          let tracking = dataTrx.tracking;
-
+          const state = JSON.parse(state);
           if (['capture', 'settlement'].includes(transaction_status)) {
-            tracking[1].status = "1";
+            state.tracking[1].status = "1";
           } else if (['deny', 'failure'].includes(transaction_status)) {
-            tracking[1].status = "0";
+            state.tracking[1].status = "0";
           }
 
           await tabelInvoicing.update({
@@ -689,7 +688,7 @@ exports.paymentNotif = async function (req, res) {
 
           await tabelUserTransaction.update({
             status: 1,
-            state: JSON.stringify(tracking)
+            state: JSON.stringify(state)
           }, {
             where: {
               id: dataTrx.id
