@@ -674,6 +674,7 @@ exports.paymentNotif = async function (req, res) {
           const state = JSON.parse(state);
           if (['capture', 'settlement'].includes(transaction_status)) {
             state.tracking[1].status = "1";
+            state.tracking[2].status = "1";
           } else if (['deny', 'failure'].includes(transaction_status)) {
             state.tracking[1].status = "0";
           }
