@@ -269,6 +269,7 @@ exports.sendInvoiceQR = async function(req, res){
       await tabelInvoicing.create(paymentInvoicingTable);
 
       await saveUsertTransaction(order_id_usr_trx, req.id, net_amount, gross_amount, order_id_ipl, details, type, 'qris');
+      await initiateBayarFirestore(order_id_ipl);
 
       res.header('access-token', req['access-token']);
       return res.status(200).json(rsmg('000000', paymentInvoicingTable))
@@ -410,7 +411,6 @@ exports.sendInvoiceBankTransfer = async function (req, res) {
       await tabelInvoicing.create(paymentInvoicingTable);
 
       await saveUsertTransaction(order_id_usr_trx, req.id, net_amount, gross_amount, order_id_ipl, details, type, 'bank_transfer');
-
       await initiateBayarFirestore(order_id_ipl);
 
       res.header('access-token', req['access-token']);

@@ -12,6 +12,8 @@ const formats = require('./config/format');
 const nanoid = require('nanoid-esm')
 const adrPembayaranIPL = require('./model/adr_pembayaran_ipl');
 const paymentInvoicing = require('./model/adr_payment_invoicing');
+const fires = require('./config/firebase').fire;
+const db = fires.firestore();
 
 exports.transferPoin = async () => {
   let mqConnectionObject = await mq.createMqConnection();
@@ -272,6 +274,9 @@ exports.finishingPaymentNotifIPL = async () => {
           order_id: order_id
         }
       })
+
+      const initiateDataPending = (await db.collection('daru').doc('pending-payment').collection('data').doc(order_id).get()).data();
+      console.log('initiateDataPendinginitiateDataPending ', JSON.stringify(initiateDataPending))
 
       if (invoice) {
         const accountID = invoice.account_id;
