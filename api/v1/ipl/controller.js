@@ -673,9 +673,9 @@ exports.paymentNotif = async function (req, res) {
         if (dataTrx) {
           let tracking = dataTrx.tracking;
 
-          if (['capture', 'settlement'].includes(bank)) {
+          if (['capture', 'settlement'].includes(transaction_status)) {
             tracking.tracking[1].status = "1";
-          } else if (['deny', 'failure'].includes(bank)) {
+          } else if (['deny', 'failure'].includes(transaction_status)) {
             tracking.tracking[1].status = "0";
           }
 
