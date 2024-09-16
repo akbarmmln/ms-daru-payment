@@ -292,10 +292,10 @@ exports.finishingPaymentNotifIPL = async () => {
           const state = JSON.parse(dataTrx.state);
           const payload = JSON.parse(dataTrx.payload);
 
-          if (['capture', 'settlement'].includes(payload.transaction_status)) {
+          if (['capture', 'settlement'].includes(payloadMQ.transaction_status)) {
             state.tracking[1].status = "1";
             state.tracking[2].status = "1";
-          } else if (['deny', 'failure'].includes(payload.transaction_status)) {
+          } else if (['deny', 'failure'].includes(payloadMQ.transaction_status)) {
             state.tracking[1].status = "0";
             state.tracking[2].status = "0";
           }
