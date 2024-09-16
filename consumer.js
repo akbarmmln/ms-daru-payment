@@ -255,11 +255,11 @@ exports.finishingPaymentNotifIPL = async () => {
 
   channel.consume(queueName, async function (msg) {
     // parse message
-    let payload = JSON.parse(msg.content.toString());
+    const payloadMQ = JSON.parse(msg.content.toString());
     logger.infoWithContext(`starting consumer finising payment notif ipl ${JSON.stringify(payload)}`);
 
     try {
-      const order_id = payload.order_id;
+      const order_id = payloadMQ.order_id;
       const splitOrderID = order_id.split('-');
       const splitOrderIDLength = splitOrderID.length;
       const partitionOrderID = splitOrderID[splitOrderIDLength - 1];
@@ -301,7 +301,7 @@ exports.finishingPaymentNotifIPL = async () => {
           }
 
           await tabelInvoicing.update({
-            transaction_status: payload.transaction_status
+            transaction_status: payloadMQ.transaction_status
           }, {
             where: {
               id: invoice.id
