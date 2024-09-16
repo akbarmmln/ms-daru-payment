@@ -10,6 +10,8 @@ const moment = require('moment');
 const uuidv4 = require('uuid').v4;
 const formats = require('./config/format');
 const nanoid = require('nanoid-esm')
+const adrPembayaranIPL = require('./model/adr_pembayaran_ipl');
+const paymentInvoicing = require('./model/adr_payment_invoicing');
 
 exports.transferPoin = async () => {
   let mqConnectionObject = await mq.createMqConnection();
