@@ -297,10 +297,11 @@ exports.finishingPaymentNotifIPL = async () => {
             state.tracking[2].status = "1";
           } else if (['deny', 'failure'].includes(payload.transaction_status)) {
             state.tracking[1].status = "0";
+            state.tracking[2].status = "0";
           }
 
           await tabelInvoicing.update({
-            transaction_status: transaction_status
+            transaction_status: payload.transaction_status
           }, {
             where: {
               id: invoice.id
