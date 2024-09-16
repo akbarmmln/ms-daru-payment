@@ -258,7 +258,7 @@ exports.finishingPaymentNotifIPL = async () => {
   channel.consume(queueName, async function (msg) {
     // parse message
     const payloadMQ = JSON.parse(msg.content.toString());
-    logger.infoWithContext(`starting consumer finising payment notif ipl ${JSON.stringify(payload)}`);
+    logger.infoWithContext(`starting consumer finising payment notif ipl ${JSON.stringify(payloadMQ)}`);
 
     try {
       const order_id = payloadMQ.order_id;
