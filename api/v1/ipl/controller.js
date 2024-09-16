@@ -671,7 +671,7 @@ exports.paymentNotif = async function (req, res) {
         })
     
         if (dataTrx) {
-          const state = JSON.parse(state);
+          const state = JSON.parse(dataTrx.state);
           if (['capture', 'settlement'].includes(transaction_status)) {
             state.tracking[1].status = "1";
             state.tracking[2].status = "1";
