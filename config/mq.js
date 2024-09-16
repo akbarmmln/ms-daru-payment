@@ -1,5 +1,6 @@
 const mqName = {
     transfer_poin: `transferPoin`,
+    payment_notif_ipl: `paymentNotifIPL`,
 }
 const amqp = require('amqplib');
 const logger = require('./logger');

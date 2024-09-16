@@ -16,6 +16,7 @@ const paymentInvoicing = require('../../../model/adr_payment_invoicing');
 const nanoid = require('nanoid-esm')
 const adrUserTransaction = require('../../../model/adr_user_transaction');
 const { crc16 } = require('crc');
+const mq = require('../../../config/mq')
 
 exports.initIPL = async function (req, res) {
   try {
@@ -638,89 +639,12 @@ exports.detailInvoice = async function(req, res) {
 exports.paymentNotif = async function (req, res) {
   try {
     logger.infoWithContext(`payload received for ipl paymentNotif, ${JSON.stringify(req.body)}`)
-
-    const order_id = req.body.order_id;
     const transaction_status = req.body.transaction_status;
-    const payment_type = req.body.payment_type;
 
     if (transaction_status !== 'pending') {
-      const splitOrderID = order_id.split('-');
-      const splitOrderIDLength = splitOrderID.length;
-      const partitionOrderID = splitOrderID[splitOrderIDLength - 1];
-  
-      const tabelPemayaranIPL = adrPembayaranIPL(partitionOrderID);
-      const tabelInvoicing = paymentInvoicing(partitionOrderID);
-      const invoice = await tabelInvoicing.findOne({
-        raw: true,
-        where: {
-          order_id: order_id
-        }
-      })
-
-      if (invoice) {
-        const accountID = invoice.account_id;
-        const user_transaction_id = invoice.user_transaction_id;
-        const splitIdTrx = user_transaction_id.split('-');
-        const splitIdTrxLenght = splitIdTrx.length
-        const partitionTrx = splitIdTrx[splitIdTrxLenght - 1]
-        const tabelUserTransaction = adrUserTransaction(partitionTrx)
-    
-        const dataTrx = await tabelUserTransaction.findOne({
-          raw: true,
-          where: {
-            request_id: user_transaction_id
-          }
-        })
-    
-        if (dataTrx) {
-          const state = JSON.parse(dataTrx.state);
-          const payload = JSON.parse(dataTrx.payload);
-
-          if (['capture', 'settlement'].includes(transaction_status)) {
-            state.tracking[1].status = "1";
-            state.tracking[2].status = "1";
-          } else if (['deny', 'failure'].includes(transaction_status)) {
-            state.tracking[1].status = "0";
-          }
-
-          await tabelInvoicing.update({
-            transaction_status: transaction_status
-          }, {
-            where: {
-              id: invoice.id
-            }
-          })
-
-          await tabelUserTransaction.update({
-            status: 1,
-            state: JSON.stringify(state)
-          }, {
-            where: {
-              id: dataTrx.id
-            }
-          })
-
-          for (let i=0; i<payload.details.length; i++) {
-            const item = payload.details[i];
-            const item_bulan = item.bulan;
-            const item_bulanInNumber = formats.convertToIntMonth(item_bulan);
-            const item_total_tagihan = item.total_tagihan;
-
-            await tabelPemayaranIPL.create({
-              id: uuidv4(),
-              created_dt: moment().format('YYYY-MM-DD HH:mm:ss.SSS'),
-              created_by: accountID,
-              modified_dt: moment().format('YYYY-MM-DD HH:mm:ss.SSS'),
-              modified_by: accountID,
-              is_deleted: 0,
-              account_id: accountID,
-              pembayaran_bulan: item_bulanInNumber,
-              detail_pembayaran: JSON.stringify(item.details),
-              jumlah_tagihan: item_total_tagihan,
-              referensi: user_transaction_id
-            })
-          }
-        }
+      let ressMQ = await mq.sendTOMQ('payment_notif_ipl', req.body);
+      if (ressMQ.status != 200) {
+        return res.status(400).json(errMsg('10000'))
       }
     }
     return res.status(200).json(rsmg('000000', req.body))
