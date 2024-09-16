@@ -278,6 +278,11 @@ exports.finishingPaymentNotifIPL = async () => {
       const initiateDataPending = (await db.collection('daru').doc('pending-payment').collection('data').doc(order_id).get()).data();
       console.log('initiateDataPendinginitiateDataPending ', JSON.stringify(initiateDataPending))
 
+      let dataFs = {
+        order_id: order_id,
+        status: 1
+      }
+
       if (invoice) {
         const accountID = invoice.account_id;
         const user_transaction_id = invoice.user_transaction_id;
@@ -300,9 +305,11 @@ exports.finishingPaymentNotifIPL = async () => {
           if (['capture', 'settlement'].includes(payloadMQ.transaction_status)) {
             state.tracking[1].status = "1";
             state.tracking[2].status = "1";
+            dataFs.status = 1
           } else if (['deny', 'failure'].includes(payloadMQ.transaction_status)) {
             state.tracking[1].status = "0";
             state.tracking[2].status = "0";
+            dataFs.status = 0
           }
 
           await tabelInvoicing.update({
@@ -346,6 +353,11 @@ exports.finishingPaymentNotifIPL = async () => {
               logger.errorWithContext({ error: e, message: 'error while insert details ipl bayar' });
             }
           }
+
+          await db
+            .collection(`daru/pending-payment/data`)
+            .doc(order_id)
+            .update(dataFs);  
         }
       }
     } catch (e) {
