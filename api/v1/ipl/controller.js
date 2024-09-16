@@ -648,6 +648,7 @@ exports.paymentNotif = async function (req, res) {
       const splitOrderIDLength = splitOrderID.length;
       const partitionOrderID = splitOrderID[splitOrderIDLength - 1];
   
+      const tabelPemayaranIPL = adrPembayaranIPL(partitionOrderID);
       const tabelInvoicing = paymentInvoicing(partitionOrderID);
       const invoice = await tabelInvoicing.findOne({
         raw: true,
@@ -657,6 +658,7 @@ exports.paymentNotif = async function (req, res) {
       })
 
       if (invoice) {
+        const accountID = invoice.account_id;
         const user_transaction_id = invoice.user_transaction_id;
         const splitIdTrx = user_transaction_id.split('-');
         const splitIdTrxLenght = splitIdTrx.length
@@ -672,6 +674,8 @@ exports.paymentNotif = async function (req, res) {
     
         if (dataTrx) {
           const state = JSON.parse(dataTrx.state);
+          const payload = JSON.parse(dataTrx.payload);
+
           if (['capture', 'settlement'].includes(transaction_status)) {
             state.tracking[1].status = "1";
             state.tracking[2].status = "1";
@@ -695,6 +699,27 @@ exports.paymentNotif = async function (req, res) {
               id: dataTrx.id
             }
           })
+
+          for (let i=0; i<payload.details.length; i++) {
+            const item = payload.details[i];
+            const item_bulan = item.bulan;
+            const item_bulanInNumber = formats.convertToIntMonth(item_bulan);
+            const item_total_tagihan = item.total_tagihan;
+
+            await tabelPemayaranIPL.create({
+              id: uuidv4(),
+              created_dt: moment().format('YYYY-MM-DD HH:mm:ss.SSS'),
+              created_by: accountID,
+              modified_dt: moment().format('YYYY-MM-DD HH:mm:ss.SSS'),
+              modified_by: accountID,
+              is_deleted: 0,
+              account_id: accountID,
+              pembayaran_bulan: item_bulanInNumber,
+              detail_pembayaran: JSON.stringify(item.details),
+              jumlah_tagihan: item_total_tagihan,
+              referensi: user_transaction_id
+            })
+          }
         }
       }
     }
