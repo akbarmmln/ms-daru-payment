@@ -17,6 +17,8 @@ const nanoid = require('nanoid-esm')
 const adrUserTransaction = require('../../../model/adr_user_transaction');
 const { crc16 } = require('crc');
 const mq = require('../../../config/mq')
+const fires = require('../../../config/firebase').fire;
+const db = fires.firestore();
 
 exports.initIPL = async function (req, res) {
   try {
@@ -409,6 +411,8 @@ exports.sendInvoiceBankTransfer = async function (req, res) {
 
       await saveUsertTransaction(order_id_usr_trx, req.id, net_amount, gross_amount, order_id_ipl, details, type, 'bank_transfer');
 
+      await initiateBayarFirestore(order_id_ipl);
+
       res.header('access-token', req['access-token']);
       return res.status(200).json(rsmg('000000', paymentInvoicingTable))
     } else {
@@ -549,6 +553,21 @@ const saveUsertTransaction = async function (order_id_usr_trx, account_id, net_a
   } catch (e) {
     logger.errorWithContext({ error: e, message: 'error to do save user transaction' })
     throw new ApiErrorMsg(HttpStatusCode.BAD_REQUEST, '10000');
+  }
+}
+
+const initiateBayarFirestore = async function (order_id) {
+  try {
+    const data = {
+      order_id: order_id,
+      status: 2
+    }
+    await db
+      .collection(`daru/pending-payment/data`)
+      .doc(order_id)
+      .create(data);
+  } catch (e) {
+    logger.errorWithContext({ error: e, message: 'error while initiate bayar to firestore' });
   }
 }
 
