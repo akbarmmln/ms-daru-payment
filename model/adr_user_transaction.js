@@ -20,6 +20,7 @@ const adrUserTransaction = (partition) => {
 		payload: Sequelize.STRING,
 		status: Sequelize.INTEGER,
         partition: Sequelize.STRING,
+		publish: Sequelize.INTEGER,
 	}, {
 		freezeTableName: true,
 		timestamps: false,

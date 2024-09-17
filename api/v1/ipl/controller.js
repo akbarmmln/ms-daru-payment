@@ -549,6 +549,7 @@ const saveUsertTransaction = async function (order_id_usr_trx, account_id, net_a
       payload: JSON.stringify(payloadUserTransaction),
       status: 2,
       partition: jobPartition % parseInt(8),
+      publish: 0
     })
   } catch (e) {
     logger.errorWithContext({ error: e, message: 'error to do save user transaction' })

@@ -355,27 +355,32 @@ exports.transactionHistory = async function (req, res) {
     }, []);
 
     for (let k=0; k<groupedDates.length; k++) {
-      const group = groupedDates[k].group;
-      const tanggal = groupedDates[k].data;
-      let where;
-      if (tanggal.length > 1) {
-        where = dbconnect.literal(`account_id = '${id}' and date(created_dt) between '${formats.getCurrentTimeInJakarta(tanggal[0], 'YYYY-MM-DD')}' and '${formats.getCurrentTimeInJakarta(tanggal[tanggal.length - 1], 'YYYY-MM-DD')}'`)
-      } else {
-        where = dbconnect.literal(`account_id = '${id}' and date(created_dt) between '${formats.getCurrentTimeInJakarta(tanggal[0], 'YYYY-MM-DD')}' and '${formats.getCurrentTimeInJakarta(tanggal[0], 'YYYY-MM-DD')}'`)
+      try {
+        const group = groupedDates[k].group;
+        const tanggal = groupedDates[k].data;
+        let where;
+        if (tanggal.length > 1) {
+          where = dbconnect.literal(`account_id = '${id}' and date(created_dt) between '${formats.getCurrentTimeInJakarta(tanggal[0], 'YYYY-MM-DD')}' and '${formats.getCurrentTimeInJakarta(tanggal[tanggal.length - 1], 'YYYY-MM-DD')}'`)
+        } else {
+          where = dbconnect.literal(`account_id = '${id}' and date(created_dt) between '${formats.getCurrentTimeInJakarta(tanggal[0], 'YYYY-MM-DD')}' and '${formats.getCurrentTimeInJakarta(tanggal[0], 'YYYY-MM-DD')}'`)
+        }
+        const tabelUserTransaction = adrUserTransaction(group);
+        const data = await tabelUserTransaction.findAll({
+          raw: true,
+          where: where
+        })
+  
+        const modifiedData = data.map(item => {
+          item.created_dt = formats.getCurrentTimeInJakarta(item.created_dt, 'YYYY-MM-DD HH:mm:ss.SSS');
+          item.modified_dt = formats.getCurrentTimeInJakarta(item.modified_dt, 'YYYY-MM-DD HH:mm:ss.SSS');
+          return item;
+        });
+  
+        hasil.push(...modifiedData)
+      } catch (e) {
+        logger.errorWithContext({ error: e, message: 'error getting data historical transaction, but still continue' });
+        continue;
       }
-      const tabelUserTransaction = adrUserTransaction(group);
-      const data = await tabelUserTransaction.findAll({
-        raw: true,
-        where: where
-      })
-
-      const modifiedData = data.map(item => {
-        item.created_dt = formats.getCurrentTimeInJakarta(item.created_dt, 'YYYY-MM-DD HH:mm:ss.SSS');
-        item.modified_dt = formats.getCurrentTimeInJakarta(item.modified_dt, 'YYYY-MM-DD HH:mm:ss.SSS');
-        return item;
-      });
-
-      hasil.push(...modifiedData)
     }
 
     if (hasil.length > 0) {
