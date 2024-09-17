@@ -360,9 +360,9 @@ exports.transactionHistory = async function (req, res) {
         const tanggal = groupedDates[k].data;
         let where;
         if (tanggal.length > 1) {
-          where = dbconnect.literal(`account_id = '${id}' and date(created_dt) between '${formats.getCurrentTimeInJakarta(tanggal[0], 'YYYY-MM-DD')}' and '${formats.getCurrentTimeInJakarta(tanggal[tanggal.length - 1], 'YYYY-MM-DD')}'`)
+          where = dbconnect.literal(`account_id = '${id}' and date(created_dt) between '${formats.getCurrentTimeInJakarta(tanggal[0], 'YYYY-MM-DD')}' and '${formats.getCurrentTimeInJakarta(tanggal[tanggal.length - 1], 'YYYY-MM-DD')}' and publish = 1`)
         } else {
-          where = dbconnect.literal(`account_id = '${id}' and date(created_dt) between '${formats.getCurrentTimeInJakarta(tanggal[0], 'YYYY-MM-DD')}' and '${formats.getCurrentTimeInJakarta(tanggal[0], 'YYYY-MM-DD')}'`)
+          where = dbconnect.literal(`account_id = '${id}' and date(created_dt) between '${formats.getCurrentTimeInJakarta(tanggal[0], 'YYYY-MM-DD')}' and '${formats.getCurrentTimeInJakarta(tanggal[0], 'YYYY-MM-DD')}' and publish = 1`)
         }
         const tabelUserTransaction = adrUserTransaction(group);
         const data = await tabelUserTransaction.findAll({
