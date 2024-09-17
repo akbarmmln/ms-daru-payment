@@ -322,7 +322,8 @@ exports.finishingPaymentNotifIPL = async () => {
 
           await tabelUserTransaction.update({
             status: 1,
-            state: JSON.stringify(state)
+            state: JSON.stringify(state),
+            publish: 1
           }, {
             where: {
               id: dataTrx.id
