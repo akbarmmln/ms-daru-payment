@@ -276,7 +276,6 @@ exports.finishingPaymentNotifIPL = async () => {
       })
 
       const initiateDataPending = (await db.collection('daru').doc('pending-payment').collection('data').doc(order_id).get()).data();
-      console.log('initiateDataPendinginitiateDataPending ', JSON.stringify(initiateDataPending))
 
       let dataFs = {
         order_id: order_id,
@@ -299,70 +298,87 @@ exports.finishingPaymentNotifIPL = async () => {
         })
 
         if (dataTrx) {
-          const state = JSON.parse(dataTrx.state);
-          const payload = JSON.parse(dataTrx.payload);
-
-          if (['capture', 'settlement'].includes(payloadMQ.transaction_status)) {
-            state.tracking[1].status = "1";
-            state.tracking[2].status = "1";
-            dataFs.status = 1
-          } else if (['deny', 'failure'].includes(payloadMQ.transaction_status)) {
-            state.tracking[1].status = "0";
-            state.tracking[2].status = "0";
+          try {
+            const state = JSON.parse(dataTrx.state);
+            const payload = JSON.parse(dataTrx.payload);
+  
+            if (['capture', 'settlement'].includes(payloadMQ.transaction_status)) {
+              state.tracking[1].status = "1";
+              state.tracking[2].status = "1";
+              dataFs.status = 1
+            } else if (['deny', 'failure'].includes(payloadMQ.transaction_status)) {
+              state.tracking[1].status = "0";
+              state.tracking[2].status = "0";
+              dataFs.status = 0
+            }
+  
+            await tabelInvoicing.update({
+              transaction_status: payloadMQ.transaction_status
+            }, {
+              where: {
+                id: invoice.id
+              }
+            })
+  
+            await tabelUserTransaction.update({
+              status: 1,
+              state: JSON.stringify(state),
+              publish: 1
+            }, {
+              where: {
+                id: dataTrx.id
+              }
+            })
+  
+            for (let i = 0; i < payload.details.length; i++) {
+              try {
+                const item = payload.details[i];
+                const item_bulan = item.bulan;
+                const item_bulanInNumber = formats.convertToIntMonth(item_bulan);
+                const item_total_tagihan = item.total_tagihan;
+  
+                await tabelPemayaranIPL.create({
+                  id: uuidv4(),
+                  created_dt: moment().format('YYYY-MM-DD HH:mm:ss.SSS'),
+                  created_by: accountID,
+                  modified_dt: moment().format('YYYY-MM-DD HH:mm:ss.SSS'),
+                  modified_by: accountID,
+                  is_deleted: 0,
+                  account_id: accountID,
+                  pembayaran_bulan: item_bulanInNumber,
+                  detail_pembayaran: JSON.stringify(item.details),
+                  jumlah_tagihan: item_total_tagihan,
+                  referensi: user_transaction_id
+                })
+              } catch (e) {
+                logger.errorWithContext({ error: e, message: 'error while insert details ipl bayar' });
+              }
+            }
+  
+            await db
+              .collection(`daru/pending-payment/data`)
+              .doc(order_id)
+              .update(dataFs);
+          } catch (e) {
+            await tabelUserTransaction.update({
+              status: 0,
+              publish: 1
+            }, {
+              where: {
+                id: dataTrx.id
+              }
+            })
             dataFs.status = 0
+            await db
+              .collection(`daru/pending-payment/data`)
+              .doc(order_id)
+              .update(dataFs);
+            logger.errorWithContext({ error: e, message: 'error proccessing finishingPaymentNotifIPL (sub program error)' });
           }
-
-          await tabelInvoicing.update({
-            transaction_status: payloadMQ.transaction_status
-          }, {
-            where: {
-              id: invoice.id
-            }
-          })
-
-          await tabelUserTransaction.update({
-            status: 1,
-            state: JSON.stringify(state),
-            publish: 1
-          }, {
-            where: {
-              id: dataTrx.id
-            }
-          })
-
-          for (let i = 0; i < payload.details.length; i++) {
-            try {
-              const item = payload.details[i];
-              const item_bulan = item.bulan;
-              const item_bulanInNumber = formats.convertToIntMonth(item_bulan);
-              const item_total_tagihan = item.total_tagihan;
-
-              await tabelPemayaranIPL.create({
-                id: uuidv4(),
-                created_dt: moment().format('YYYY-MM-DD HH:mm:ss.SSS'),
-                created_by: accountID,
-                modified_dt: moment().format('YYYY-MM-DD HH:mm:ss.SSS'),
-                modified_by: accountID,
-                is_deleted: 0,
-                account_id: accountID,
-                pembayaran_bulan: item_bulanInNumber,
-                detail_pembayaran: JSON.stringify(item.details),
-                jumlah_tagihan: item_total_tagihan,
-                referensi: user_transaction_id
-              })
-            } catch (e) {
-              logger.errorWithContext({ error: e, message: 'error while insert details ipl bayar' });
-            }
-          }
-
-          await db
-            .collection(`daru/pending-payment/data`)
-            .doc(order_id)
-            .update(dataFs);  
         }
       }
     } catch (e) {
-      logger.errorWithContext({ error: e, message: 'error proccessing finishingPaymentNotifIPL' });
+      logger.errorWithContext({ error: e, message: 'error proccessing finishingPaymentNotifIPL (general error)' });
     }
   }, {
     noAck: true
