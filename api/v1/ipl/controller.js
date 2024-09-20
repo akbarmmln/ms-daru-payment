@@ -138,6 +138,7 @@ exports.checkTagihan = async function (req, res) {
         if (config[k].bulan_implementasi == 0 && config[k].status == 1) {
           props.total_tagihan = (parseInt(props.total_tagihan) + parseInt(config[k].tagihan)).toString()
           props.details.push({
+            id: config[k].id,
             jenis: config[k].jenis_iuran,
             tagihan: parseInt(config[k].tagihan).toString(),
           })
@@ -145,6 +146,7 @@ exports.checkTagihan = async function (req, res) {
           if (bulan[i] == config[k].bulan_implementasi) {
             props.total_tagihan = (parseInt(props.total_tagihan) + parseInt(config[k].tagihan)).toString()
             props.details.push({
+              id: config[k].id,
               jenis: config[k].jenis_iuran,
               tagihan: parseInt(config[k].tagihan).toString(),
             })

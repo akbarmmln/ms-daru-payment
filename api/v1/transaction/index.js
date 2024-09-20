@@ -12,4 +12,6 @@ router.post('/history', utils.verifyTokenMs, controller.transactionHistory);
 
 router.get('/details/:id', utils.verifyTokenMs, controller.transactionDetails);
 
+router.post('/unpaid-in-month', utils.verifyTokenMs, controller.checkUnpaidInMonth);
+
 module.exports = router;

@@ -18,6 +18,7 @@ const { crc16 } = require('crc');
 const nanoid = require('nanoid-esm')
 const mq = require('../../../config/mq')
 const lodash = require('lodash');
+const adrPembayaranIPL = require('../../../model/adr_pembayaran_ipl');
 
 exports.vaInfo = async function (req, res) {
   try {
@@ -329,7 +330,6 @@ exports.transactionHistory = async function (req, res) {
         dates.push(new Date(currentDate));
         currentDate.setDate(currentDate.getDate() + 1);
       }
-
       return dates;
     }
 
@@ -403,7 +403,44 @@ exports.transactionHistory = async function (req, res) {
       return res.status(200).json(rsmg('000000', []));  
     }
   } catch (e) {
-    logger.errorWithContext({ error: e, message: 'error GET /api/v1/transaction/history...' });
-    return utils.returnErrorFunction(res, 'error GET /api/v1/transaction/history...', e);
+    logger.errorWithContext({ error: e, message: 'error POST /api/v1/transaction/history...' });
+    return utils.returnErrorFunction(res, 'error POST /api/v1/transaction/history...', e);
+  }
+}
+
+exports.checkUnpaidInMonth = async function (req, res){
+  try {
+    const id = req.id;
+    const tahun = req.body.tahun;
+    let masterConfig;
+
+    try {
+      masterConfig = await httpCaller({
+        method: 'POST',
+        url: process.env.MS_SUPPORT_V1_URL + '/master-organitation/config',
+        data: {
+          tahun_implementasi: tahun
+        }
+      })
+      masterConfig = masterConfig.data.data
+    } catch (e) {
+      return res.status(e.response.status).json(e?.response?.data);
+    }
+
+    const tabelBayarIPL = adrPembayaranIPL(tahun);
+    const dataBayarIPL = await tabelBayarIPL.findAll({
+      raw: true,
+      where: {
+        is_deleted: 0,
+        account_id: id
+      },
+      order: [['pembayaran_bulan', 'ASC']]
+    })
+
+    res.header('access-token', req['access-token']);
+    return res.status(200).json(rsmg('000000', dataBayarIPL))
+  } catch (e) {
+    logger.errorWithContext({ error: e, message: 'error POST /api/v1/transaction/unpaid-in-month...' });
+    return utils.returnErrorFunction(res, 'error POST /api/v1/transaction/unpaid-in-month...', e);
   }
 }

@@ -48,6 +48,7 @@
         "nanoid-esm": "^2.1.0-esm.4",
         "node-fetch": "^3.3.2",
         "nodemailer": "^6.9.7",
+        "nodemon": "^3.1.6",
         "otp-generator": "^4.0.1",
         "pino": "^9.3.2",
         "pino-http": "^10.2.0",
