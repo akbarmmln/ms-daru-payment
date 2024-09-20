@@ -437,8 +437,58 @@ exports.checkUnpaidInMonth = async function (req, res){
       order: [['pembayaran_bulan', 'ASC']]
     })
 
-    res.header('access-token', req['access-token']);
-    return res.status(200).json(rsmg('000000', dataBayarIPL))
+    let push = [];
+    if (dataBayarIPL.length > 0) {
+      dataBayarIPL.forEach(dataBayar => {
+        const element_bulan = dataBayar.pembayaran_bulan;
+        const element_pembayaran = JSON.parse(dataBayar.detail_pembayaran);
+
+        masterConfig
+        .filter(config => config.status == 1)
+        .forEach(config => {
+          const { id: element_id, bulan_implementasi: elemen_bulan_implementasi, jenis_iuran, tagihan, status } = config;
+          const isIdFound = element_pembayaran.some(item => item.id === element_id);
+            if (!isIdFound && (elemen_bulan_implementasi == 0 || element_bulan == elemen_bulan_implementasi)) {
+              push.push({
+                id: element_id,
+                jenis: jenis_iuran,
+                tagihan: tagihan,
+                bulan: element_bulan
+              });
+            }
+        });
+      });
+    }
+
+    if (push.length > 0) {
+      const result = push.reduce((acc, currentItem) => {
+        const monthName = formats.convertToLiteralMonth(currentItem.bulan)
+        let group = acc.find(item => item.bulan === monthName);
+
+        if (!group) {
+          group = {
+            bulan: monthName,
+            details: [],
+            total_tagihan: 0
+          };
+          acc.push(group);
+        }
+
+        group.details.push({
+          id: currentItem.id,
+          jenis: currentItem.jenis,
+          tagihan: currentItem.tagihan
+        });
+
+        group.total_tagihan = (parseFloat(group.total_tagihan) + parseFloat(currentItem.tagihan)).toFixed(2);
+        return acc;
+      }, []);
+      res.header('access-token', req['access-token']);
+      return res.status(200).json(rsmg('000000', result))  
+    } else {
+      res.header('access-token', req['access-token']);
+      return res.status(200).json(rsmg('000000', []))  
+    }
   } catch (e) {
     logger.errorWithContext({ error: e, message: 'error POST /api/v1/transaction/unpaid-in-month...' });
     return utils.returnErrorFunction(res, 'error POST /api/v1/transaction/unpaid-in-month...', e);
