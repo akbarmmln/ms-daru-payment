@@ -17,6 +17,7 @@ const adrPembayaranIPL = (partition) => {
 		detail_pembayaran: Sequelize.STRING,
 		jumlah_tagihan: Sequelize.DECIMAL,
 		referensi: Sequelize.STRING,
+		pembayaran_susulan: Sequelize.INTEGER,
 	}, {
 		freezeTableName: true,
 		timestamps: false,

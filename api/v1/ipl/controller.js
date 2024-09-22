@@ -71,7 +71,8 @@ exports.initIPL = async function (req, res) {
       raw: true,
       where: {
         is_deleted: 0,
-        account_id: id
+        account_id: id,
+        pembayaran_susulan: 0
       },
       order: [['pembayaran_bulan', 'ASC']]
     })
