@@ -428,8 +428,13 @@ exports.checkUnpaidInMonth = async function (req, res){
     }
 
     const tabelBayarIPL = adrPembayaranIPL(tahun);
+    let exclude = ['id', 'created_dt', 'created_by', 'modified_dt', 'modified_by', 'account_id']
+
     const dataBayarIPL = await tabelBayarIPL.findAll({
       raw: true,
+      attributes: {
+        exclude: exclude
+      },
       where: {
         is_deleted: 0,
         account_id: id
@@ -437,16 +442,40 @@ exports.checkUnpaidInMonth = async function (req, res){
       order: [['pembayaran_bulan', 'ASC']]
     })
 
+    const mergedData = dataBayarIPL.reduce((acc, current) => {
+      const existing = acc.find(item => item.pembayaran_bulan === current.pembayaran_bulan);
+      
+      if (existing) {
+        // Parse the detail_pembayaran to JSON
+        const currentDetails = JSON.parse(current.detail_pembayaran);
+        const existingDetails = JSON.parse(existing.detail_pembayaran);
+    
+        // Merge the arrays
+        existingDetails.push(...currentDetails);
+    
+        // Convert it back to string for consistency
+        existing.detail_pembayaran = JSON.stringify(existingDetails);
+      } else {
+        // If it doesn't exist, add the current item to the accumulator
+        acc.push({
+          ...current,
+          detail_pembayaran: current.detail_pembayaran // Keep the detail_pembayaran as string
+        });
+      }
+    
+      return acc;
+    }, []);
+
     let push = [];
-    if (dataBayarIPL.length > 0) {
-      dataBayarIPL.forEach(dataBayar => {
+    if (mergedData.length > 0) {
+      mergedData.forEach(dataBayar => {
         const element_bulan = dataBayar.pembayaran_bulan;
         const element_pembayaran = JSON.parse(dataBayar.detail_pembayaran);
 
         masterConfig
         .filter(config => config.status == 1)
         .forEach(config => {
-          const { id: element_id, bulan_implementasi: elemen_bulan_implementasi, jenis_iuran, tagihan, status } = config;
+          const { id: element_id, bulan_implementasi: elemen_bulan_implementasi, jenis_iuran, tagihan } = config;
           const isIdFound = element_pembayaran.some(item => item.id === element_id);
             if (!isIdFound && (elemen_bulan_implementasi == 0 || element_bulan == elemen_bulan_implementasi)) {
               push.push({
