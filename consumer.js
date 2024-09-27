@@ -206,6 +206,16 @@ exports.transferPoin = async () => {
   }, {
     noAck: true
   });
+
+  channel.on('error', (err) => {
+    logger.errorWithContext({error: err, message: `Channel error, reconnecting ${queueName}`})
+    exports.transferPoin();
+  });
+
+  channel.on('close', () => {
+    logger.errorWithContext({error: err, message: `Channel closed, reconnecting ${queueName}`})
+    exports.transferPoin();
+  });
 }
 
 const doReversal = async function (dataTransaction) {
@@ -301,7 +311,7 @@ exports.finishingPaymentNotifIPL = async () => {
           try {
             const state = JSON.parse(dataTrx.state);
             const payload = JSON.parse(dataTrx.payload);
-  
+
             if (['capture', 'settlement'].includes(payloadMQ.transaction_status)) {
               state.tracking[1].status = "1";
               state.tracking[2].status = "1";
@@ -311,7 +321,7 @@ exports.finishingPaymentNotifIPL = async () => {
               state.tracking[2].status = "0";
               dataFs.status = 0
             }
-  
+
             await tabelInvoicing.update({
               transaction_status: payloadMQ.transaction_status
             }, {
@@ -319,7 +329,7 @@ exports.finishingPaymentNotifIPL = async () => {
                 id: invoice.id
               }
             })
-  
+
             await tabelUserTransaction.update({
               status: 1,
               state: JSON.stringify(state),
@@ -329,14 +339,14 @@ exports.finishingPaymentNotifIPL = async () => {
                 id: dataTrx.id
               }
             })
-  
+
             for (let i = 0; i < payload.details.length; i++) {
               try {
                 const item = payload.details[i];
                 const item_bulan = item.bulan;
                 const item_bulanInNumber = formats.convertToIntMonth(item_bulan);
                 const item_total_tagihan = item.total_tagihan;
-  
+
                 await tabelPemayaranIPL.create({
                   id: uuidv4(),
                   created_dt: moment().format('YYYY-MM-DD HH:mm:ss.SSS'),
@@ -354,7 +364,7 @@ exports.finishingPaymentNotifIPL = async () => {
                 logger.errorWithContext({ error: e, message: 'error while insert details ipl bayar' });
               }
             }
-  
+
             await db
               .collection(`daru/pending-payment/data`)
               .doc(order_id)
@@ -382,5 +392,15 @@ exports.finishingPaymentNotifIPL = async () => {
     }
   }, {
     noAck: true
+  });
+
+  channel.on('error', (err) => {
+    logger.errorWithContext({error: err, message: `Channel error, reconnecting ${queueName}`})
+    exports.finishingPaymentNotifIPL();
+  });
+
+  channel.on('close', () => {
+    logger.errorWithContext({error: err, message: `Channel closed, reconnecting ${queueName}`})
+    exports.finishingPaymentNotifIPL();
   });
 }
