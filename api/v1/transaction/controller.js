@@ -153,7 +153,7 @@ exports.transferPayment = async function (req, res) {
     const id = uuidv4();
     const jobPartition = parseInt(crc16(id).toString());
     const code_transaction = req.body.code_transaction;
-    const partition = formats.getCurrentTimeInJakarta(moment().format(), 'YYYYMM');
+    const partition = moment().format('YYYYMM')
     const desiredLength = formats.generateRandomValue(20,30);
     let request_id = nanoid(desiredLength);
     request_id = `${request_id}-${partition}`;
@@ -243,8 +243,8 @@ exports.transferPayment = async function (req, res) {
       va_number_destination: va_number_destination,
       va_name_destination: va_name_destination,
       type: type,
-      waktu: formats.getCurrentTimeInJakarta(moment(date).format(), 'HH:mm'),
-      tanggal: formats.getCurrentTimeInJakarta(moment(date).format(), 'DD MM YYYY'),
+      waktu: moment(date).format('HH:mm'),
+      tanggal: moment(date).format('DD MM YYYY'),
       state: state,
       payload: payload,
       status: '2'
@@ -281,7 +281,7 @@ exports.transactionDetails = async function(req, res){
       const payload = JSON.parse(data.payload);
       const va_number_destination = payload.va_number_destination;
       const va_name_destination = payload.va_name_destination
-      const date = formats.getCurrentTimeInJakarta(data.created_dt, 'YYYY-MM-DD HH:mm:ss.SSS')
+      const date = moment(data.created_dt).format('YYYY-MM-DD HH:mm:ss.SSS')      
       hasil = {
         request_id: data.request_id,
         va_number_destination: va_number_destination,
@@ -298,7 +298,7 @@ exports.transactionDetails = async function(req, res){
       const payload = JSON.parse(data.payload);
       const va_number_source = payload.va_number_source;
       const va_name_source = payload.va_name_source
-      const date = formats.getCurrentTimeInJakarta(data.created_dt, 'YYYY-MM-DD HH:mm:ss.SSS')
+      const date = moment(data.created_dt).format('YYYY-MM-DD HH:mm:ss.SSS')
       hasil = {
         request_id: data.request_id,
         va_number_source: va_number_source,
@@ -343,8 +343,8 @@ exports.transactionHistory = async function (req, res) {
     }
 
     const groupedDates = datesArray.reduce((acc, date) => {
-      const anDate = formats.getCurrentTimeInJakarta(date, 'YYYY-MM-DD')
-      const yearMonth = formats.getCurrentTimeInJakarta(anDate, 'YYYYMM')
+      const anDate = moment(date).format('YYYY-MM-DD')
+      const yearMonth = moment(anDate).format('YYYYMM')
       let group = acc.find(g => g.group === yearMonth);
       if (!group) {
         group = { group: yearMonth, data: [] };
@@ -360,9 +360,9 @@ exports.transactionHistory = async function (req, res) {
         const tanggal = groupedDates[k].data;
         let where;
         if (tanggal.length > 1) {
-          where = dbconnect.literal(`account_id = '${id}' and date(created_dt) between '${formats.getCurrentTimeInJakarta(tanggal[0], 'YYYY-MM-DD')}' and '${formats.getCurrentTimeInJakarta(tanggal[tanggal.length - 1], 'YYYY-MM-DD')}' and publish = 1`)
+          where = dbconnect.literal(`account_id = '${id}' and date(created_dt) between '${moment(tanggal[0]).format('YYYY-MM-DD')}' and '${moment(tanggal[tanggal.length - 1]).format('YYYY-MM-DD')}' and publish = 1`)
         } else {
-          where = dbconnect.literal(`account_id = '${id}' and date(created_dt) between '${formats.getCurrentTimeInJakarta(tanggal[0], 'YYYY-MM-DD')}' and '${formats.getCurrentTimeInJakarta(tanggal[0], 'YYYY-MM-DD')}' and publish = 1`)
+          where = dbconnect.literal(`account_id = '${id}' and date(created_dt) between '${moment(tanggal[0]).format('YYYY-MM-DD')}' and '${moment(tanggal[0]).format('YYYY-MM-DD')}' and publish = 1`)
         }
         const tabelUserTransaction = adrUserTransaction(group);
         const data = await tabelUserTransaction.findAll({
@@ -370,13 +370,8 @@ exports.transactionHistory = async function (req, res) {
           where: where
         })
   
-        const modifiedData = data.map(item => {
-          item.created_dt = formats.getCurrentTimeInJakarta(item.created_dt, 'YYYY-MM-DD HH:mm:ss.SSS');
-          item.modified_dt = formats.getCurrentTimeInJakarta(item.modified_dt, 'YYYY-MM-DD HH:mm:ss.SSS');
-          return item;
-        });
-  
-        hasil.push(...modifiedData)
+
+        hasil.push(...data)
       } catch (e) {
         logger.errorWithContext({ error: e, message: 'error getting data historical transaction, but still continue' });
         continue;

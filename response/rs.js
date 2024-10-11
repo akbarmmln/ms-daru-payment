@@ -17,7 +17,7 @@ function rs(code, data) {
     code_description: code_description,
     data: data,
     language: 'EN',
-    timestamp: format.getCurrentTimeInJakarta(moment().format(), 'YYYY-MM-DD HH:mm:ss.SSS')
+    timestamp: moment().format('YYYY-MM-DD HH:mm:ss.SSS')
   }
 }
 

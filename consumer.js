@@ -152,7 +152,7 @@ exports.transferPoin = async () => {
           state: JSON.stringify(tracking),
         }, request_id);
 
-        const destinationPartition = formats.getCurrentTimeInJakarta(moment().format(), 'YYYYMM');
+        const destinationPartition = moment().format('YYYYMM')
         const tabelUserTransactionDesc = adrUserTransaction(destinationPartition);
         const desiredLength = formats.generateRandomValue(20, 30);
         let request_id_destination = nanoid(desiredLength);
@@ -220,7 +220,7 @@ exports.transferPoin = async () => {
 
 const doReversal = async function (dataTransaction) {
   try {
-    const partition = formats.getCurrentTimeInJakarta(moment().format(), 'YYYYMM')
+    const partition = moment().format('YYYYMM')
     const desiredLength = formats.generateRandomValue(20, 30);
     let request_id = nanoid(desiredLength);
     request_id = `${request_id}-${partition}`;
