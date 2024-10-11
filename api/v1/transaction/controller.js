@@ -288,7 +288,7 @@ exports.transactionDetails = async function(req, res){
         va_name_destination: va_name_destination,
         nominal: data.amount,
         type: data.transaction_type,
-        waktu: moment(date).format('HH:mm'),
+        waktu: moment(date).format('HH:mm.SSS'),
         tanggal: moment(date).format('DD MM YYYY'),
         state: JSON.parse(data.state),
         payload: JSON.parse(data.payload),
