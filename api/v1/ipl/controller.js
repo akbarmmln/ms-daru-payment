@@ -665,7 +665,7 @@ exports.paymentNotif = async function (req, res) {
     logger.infoWithContext(`payload received for ipl paymentNotif, ${JSON.stringify(req.body)}`)
     const transaction_status = req.body.transaction_status;
 
-    if (transaction_status !== 'pending') {
+    if (transaction_status == 'settlement') {
       let ressMQ = await mq.sendTOMQ('payment_notif_ipl', req.body);
       if (ressMQ.status != 200) {
         return res.status(400).json(errMsg('10000'))
