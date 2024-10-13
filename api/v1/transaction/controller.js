@@ -20,6 +20,13 @@ const mq = require('../../../config/mq')
 const lodash = require('lodash');
 const adrPembayaranIPL = require('../../../model/adr_pembayaran_ipl');
 
+async function runNanoID(n) {
+  const { customAlphabet } = await import('nanoid');
+  const alphabet = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+  const id = customAlphabet(alphabet, n);
+  return id();
+}
+
 exports.vaInfo = async function (req, res) {
   try {
     const id = req.id;
@@ -155,7 +162,7 @@ exports.transferPayment = async function (req, res) {
     const code_transaction = req.body.code_transaction;
     const partition = moment().format('YYYYMM')
     const desiredLength = formats.generateRandomValue(20,30);
-    let request_id = nanoid(desiredLength);
+    let request_id = await runNanoID(desiredLength);
     request_id = `${request_id}-${partition}`;
 
     const va_number_source = req.body.va_number_source;

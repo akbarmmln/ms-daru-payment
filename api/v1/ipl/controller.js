@@ -20,6 +20,13 @@ const mq = require('../../../config/mq')
 const fires = require('../../../config/firebase').fire;
 const db = fires.firestore();
 
+async function runNanoID(n) {
+  const { customAlphabet } = await import('nanoid');
+  const alphabet = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+  const id = customAlphabet(alphabet, n);
+  return id();
+}
+
 exports.initIPL = async function (req, res) {
   try {
     const id = req.id;
@@ -170,7 +177,7 @@ exports.sendInvoiceQR = async function(req, res){
     const fullDate = moment().format('YYYY-MM-DD HH:mm:ss.SSS')
     const partitionIPL = moment(fullDate).format('YYYY')
     const desiredLength = formats.generateRandomValue(10,15);
-    const order_id = nanoid(desiredLength);
+    const order_id = await runNanoID(desiredLength);
     const order_id_ipl = `${order_id}-${partitionIPL}`;
     const partitionUsrTrx = moment().format('YYYYMM');
     const order_id_usr_trx = `${order_id}-${partitionUsrTrx}`;
@@ -291,7 +298,7 @@ exports.sendInvoiceBankTransfer = async function (req, res) {
     const fullDate = moment().format('YYYY-MM-DD HH:mm:ss.SSS')
     const partitionIPL = moment(fullDate).format('YYYY')
     const desiredLength = formats.generateRandomValue(10,15);
-    const order_id = nanoid(desiredLength);
+    const order_id = await runNanoID(desiredLength);
     const order_id_ipl = `${order_id}-${partitionIPL}`;
     const partitionUsrTrx = moment().format('YYYYMM');
     const order_id_usr_trx = `${order_id}-${partitionUsrTrx}`;
