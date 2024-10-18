@@ -38,7 +38,8 @@ exports.initIPL = async function (req, res) {
         method: 'POST',
         url: process.env.MS_SUPPORT_V1_URL + '/master-organitation/config',
         data: {
-          tahun_implementasi: tahun_implementasi
+          tahun_implementasi: tahun_implementasi,
+          status: '1'
         }
       })
     } catch (e) {
