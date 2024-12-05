@@ -213,7 +213,7 @@ exports.transferPoin = async () => {
   });
 
   channel.on('close', () => {
-    logger.errorWithContext({error: err, message: `Channel closed, reconnecting ${queueName}`})
+    logger.infoWithContext(`Channel closed, reconnecting ${queueName}`)
     exports.transferPoin();
   });
 }
@@ -400,7 +400,7 @@ exports.finishingPaymentNotifIPL = async () => {
   });
 
   channel.on('close', () => {
-    logger.errorWithContext({error: err, message: `Channel closed, reconnecting ${queueName}`})
+    logger.infoWithContext(`Channel closed, reconnecting ${queueName}`)
     exports.finishingPaymentNotifIPL();
   });
 }
