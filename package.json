@@ -16,6 +16,7 @@
     },
     "dependencies": {
         "@aws-sdk/client-s3": "^3.484.0",
+        "@kubernetes/client-node": "^0.22.3",
         "amqplib": "^0.10.4",
         "async_hooks": "^1.0.0",
         "aws-sdk": "^2.1528.0",
@@ -58,6 +59,7 @@
         "sequelize": "^6.37.3",
         "short-uuid": "^5.2.0",
         "string-template": "^1.0.0",
+        "toad-scheduler": "^3.0.1",
         "utf8": "^3.0.0",
         "uuid": "^9.0.1",
         "ws": "^8.18.0",
