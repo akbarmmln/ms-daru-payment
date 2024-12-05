@@ -42,8 +42,10 @@ class Assignor {
         //return [0,1,2,3,4,5,6,7];
 
         //Get all available pods by service name
-        const namespace = process.env.NAMESPACE === null || process.env.NAMESPACE === undefined ? "sit" : process.env.NAMESPACE;
+        const namespace = process.env.NAMESPACE;
         const response = await this.client.listNamespacedPod(namespace, undefined, undefined, undefined, undefined, `app=${process.env.SELECTOR}`);
+        logger.infoWithContext(`response available pods in namespace ${namespace} with selector ${process.env.SELECTOR}: ${JSON.stringify(response)}`)
+
         const pods = response.body.items;
         const currentPod = this.getIdentifier();
         if (currentPod === "") {
