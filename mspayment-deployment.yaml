@@ -27,6 +27,11 @@ spec:
       - name: mspayment
         image: taufik90/ms-payment:$BUILD_NUMBER
         imagePullPolicy: Always
+        resources:
+            requests:
+              ephemeral-storage: "1Gi"
+            limits:
+              ephemeral-storage: "2Gi"
         ports:
         - containerPort: 8995
         livenessProbe:
