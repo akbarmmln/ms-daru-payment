@@ -25,8 +25,13 @@ spec:
     spec:
       containers:
       - name: mspayment
-        image: taufik90/ms-payment:6
+        image: taufik90/ms-payment:$BUILD_NUMBER
         imagePullPolicy: Always
+        resources:
+            requests:
+              ephemeral-storage: "1Gi"
+            limits:
+              ephemeral-storage: "2Gi"
         ports:
         - containerPort: 8995
         livenessProbe:
@@ -237,6 +242,4 @@ spec:
             secretKeyRef:
               name: mspayment-secret
               key: SELECTOR
-      imagePullSecrets:
-      - name: dockerhub
       restartPolicy: Always
